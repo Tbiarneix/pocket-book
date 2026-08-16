@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens from the "Journal de lecture" design system (Claude Design,
+ * handoff doc: design_handoff_journal_de_lecture). Variable names are kept
+ * stable across light/dark so components never branch on color mode.
+ */
+:root {
+  --background: #faf8f4; /* papier */
+  --surface: #fffdfa;
+  --surface-muted: #f2ede4;
+  --foreground: #201b14; /* encre — 16,1:1 sur papier */
+  --muted: #5c5346; /* encre atténuée — 7,1:1 */
+  --border: #e0d7c7; /* bordure déco (séparateurs, cartes) */
+  --border-field: #948566; /* bordure de champ — 3,6:1 */
+  --border-strong: #7d735e; /* bordure forte (boutons outline) — 4,6:1 */
+  --accent: #9a3f18; /* 6,4:1 sur surface */
+  --accent-foreground: #fff8f0;
+  --accent-soft: #f6e5d9;
+  --accent-soft-border: #e0b79c;
+  --focus-ring: #9a3f18;
+  --cover-stripe: #e8e0d0;
+  --dogear-shade: rgba(32, 27, 20, 0.16);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-field: var(--border-field);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-border: var(--accent-soft-border);
+  --font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #17140f;
+    --surface: #1f1b15;
+    --surface-muted: #29241c;
+    --foreground: #f3eee5; /* 14,8:1 */
+    --muted: #b8ab97; /* 7,6:1 */
+    --border: #3a3327;
+    --border-field: #7a6f55; /* 3,5:1 */
+    --border-strong: #948a70; /* 5,0:1 */
+    --accent: #e8946a; /* 7,2:1 sur surface */
+    --accent-foreground: #2a1305;
+    --accent-soft: #3a2417;
+    --accent-soft-border: #5c3d29;
+    --focus-ring: #e8946a;
+    --cover-stripe: #201c16;
+    --dogear-shade: rgba(255, 255, 255, 0.12);
+  }
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Strong, visible focus outline for keyboard users, on every focusable element. */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 50;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: top 0.15s ease-in-out;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
