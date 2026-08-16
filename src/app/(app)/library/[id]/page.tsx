@@ -29,6 +29,7 @@ import { RankingBadge } from "@/components/RankingBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookCover } from "@/components/BookCover";
 import { isActiveStatus } from "@/lib/statusStyle";
+import { SKETCH_RADIUS, SKETCH_UNDERLINE } from "@/lib/sketch";
 
 async function fetchBookPageData(id: string) {
   const [book, rankings, bookCharacters, bookStorylines, characters, storylines] =
@@ -137,7 +138,7 @@ export default function BookDetailPage({
     <div className="flex flex-col gap-8">
       <Link
         href="/library"
-        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent hover:underline"
+        className={`inline-flex items-center gap-1.5 font-hand text-[17px] text-accent ${SKETCH_UNDERLINE}`}
       >
         <ArrowLeft aria-hidden="true" width={14} height={14} strokeWidth={2} />
         Retour à la bibliothèque
@@ -154,15 +155,15 @@ export default function BookDetailPage({
         <div className="flex flex-1 flex-col gap-3.5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="font-serif text-2xl font-semibold text-foreground sm:text-[28px]">
+              <h1 className="font-hand text-[32px] text-foreground sm:text-[38px]">
                 {book.title}
               </h1>
-              {author && <p className="mt-1 text-[15px] text-muted">{author}</p>}
+              {author && <p className="mt-1 font-hand text-[17px] text-muted">{author}</p>}
             </div>
             <div className="flex gap-2">
               <Link
                 href={`/library/${id}/edit`}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-[8px] border border-border-strong px-3.5 text-[13.5px] font-semibold text-foreground hover:bg-surface-muted"
+                className={`inline-flex min-h-11 items-center gap-1.5 border-2 border-border-strong bg-background px-3.5 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
               >
                 <Pencil aria-hidden="true" width={14} height={14} strokeWidth={2} />
                 Modifier
@@ -171,7 +172,7 @@ export default function BookDetailPage({
                 type="button"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-[8px] border border-accent px-3.5 text-[13.5px] font-semibold text-accent hover:bg-accent-soft disabled:opacity-60"
+                className={`inline-flex min-h-11 items-center gap-1.5 border-2 border-accent bg-background px-3.5 font-hand text-[15px] text-accent hover:bg-accent-soft disabled:opacity-60 ${SKETCH_RADIUS}`}
               >
                 <Trash2 aria-hidden="true" width={14} height={14} strokeWidth={2} />
                 {isDeleting ? "Suppression…" : "Supprimer"}
@@ -183,19 +184,19 @@ export default function BookDetailPage({
             <RankingBadge rating={book.rating} rankings={rankings} variant="full" />
             {status && <StatusBadge name={status} />}
             {serie && (
-              <span className="inline-flex min-h-[26px] items-center rounded-full border border-border-field px-2.5 text-[12.5px] font-medium text-muted">
+              <span className="inline-flex min-h-[28px] items-center rounded-[9px] border-2 border-border-field bg-background px-2.5 font-hand text-[14px] text-muted">
                 Série : {serie}
               </span>
             )}
             {genre && (
-              <span className="inline-flex min-h-[26px] items-center rounded-full border border-border-field px-2.5 text-[12.5px] font-medium text-muted">
+              <span className="inline-flex min-h-[28px] items-center rounded-[9px] border-2 border-border-field bg-background px-2.5 font-hand text-[14px] text-muted">
                 {genre}
               </span>
             )}
             {subgenres.map((sub) => (
               <span
                 key={sub.id}
-                className="inline-flex min-h-[26px] items-center rounded-full border border-border-field px-2.5 text-[12.5px] font-medium text-muted"
+                className="inline-flex min-h-[28px] items-center rounded-[9px] border-2 border-border-field bg-background px-2.5 font-hand text-[14px] text-muted"
               >
                 {sub.name}
               </span>
@@ -203,17 +204,17 @@ export default function BookDetailPage({
           </div>
 
           {book.finished && (
-            <p className="text-sm text-muted">
+            <p className="font-mono text-sm text-muted">
               Terminé le {new Date(book.finished).toLocaleDateString("fr-FR")}
             </p>
           )}
 
           {book.summary && (
             <section aria-labelledby="summary-heading" className="mt-2">
-              <h2 id="summary-heading" className="text-[13.5px] font-semibold text-foreground">
+              <h2 id="summary-heading" className="font-hand text-[20px] text-foreground">
                 Résumé
               </h2>
-              <p className="mt-1 whitespace-pre-wrap text-[14.5px] leading-[1.65] text-foreground">
+              <p className="mt-1 whitespace-pre-wrap font-hand text-[17px] leading-[1.75] text-foreground">
                 {book.summary}
               </p>
             </section>
@@ -221,10 +222,10 @@ export default function BookDetailPage({
 
           {book.opinion && (
             <section aria-labelledby="opinion-heading" className="mt-2">
-              <h2 id="opinion-heading" className="text-[13.5px] font-semibold text-foreground">
+              <h2 id="opinion-heading" className="font-hand text-[20px] text-foreground">
                 Mon avis
               </h2>
-              <p className="mt-1 whitespace-pre-wrap text-[14.5px] leading-[1.65] text-foreground">
+              <p className="mt-1 whitespace-pre-wrap font-hand text-[17px] leading-[1.75] text-foreground">
                 {book.opinion}
               </p>
             </section>
@@ -334,14 +335,14 @@ function RelationSection({
   return (
     <section
       aria-labelledby={`${selectId}-heading`}
-      className="rounded-[10px] border border-border bg-surface px-5 py-[18px]"
+      className="rounded-[14px] border-2 border-dashed border-border-field bg-surface px-5 py-[18px]"
     >
-      <h2 id={`${selectId}-heading`} className="font-serif text-[15px] font-semibold text-foreground">
+      <h2 id={`${selectId}-heading`} className="font-hand text-[22px] text-foreground">
         {title}
       </h2>
 
       {items.length === 0 ? (
-        <p className="mt-2 text-sm text-muted">{emptyLabel}</p>
+        <p className="mt-2 font-hand text-[15px] text-muted">{emptyLabel}</p>
       ) : (
         <ul className="mt-3 flex flex-col gap-2">
           {items.map((item) => (
@@ -350,15 +351,15 @@ function RelationSection({
               className="flex items-start justify-between gap-3 rounded-[8px] bg-surface-muted px-3.5 py-2.5"
             >
               <div>
-                <p className="text-[13.5px] font-semibold text-foreground">{item.label}</p>
+                <p className="font-hand text-[16px] font-semibold text-foreground">{item.label}</p>
                 {item.comment && item.comment !== "N/A" && (
-                  <p className="mt-0.5 text-[13px] text-muted">{item.comment}</p>
+                  <p className="mt-0.5 font-hand text-[15px] text-muted">{item.comment}</p>
                 )}
               </div>
               <button
                 type="button"
                 onClick={() => onRemove(item.id)}
-                className="min-h-8 shrink-0 text-[13px] font-semibold text-accent hover:underline"
+                className="min-h-8 shrink-0 font-hand text-[15px] text-accent hover:underline"
               >
                 Retirer
                 <span className="sr-only"> {item.label}</span>
@@ -370,14 +371,14 @@ function RelationSection({
 
       <form onSubmit={handleSubmit} className="mt-4 flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={selectId} className="text-xs font-semibold text-muted">
+          <label htmlFor={selectId} className="font-hand text-[13px] text-muted">
             {selectLabel}
           </label>
           <select
             id={selectId}
             value={selected}
             onChange={(event) => setSelected(event.target.value)}
-            className="min-h-[38px] w-[200px] rounded-[8px] border border-border-field bg-surface px-3 text-[13.5px] text-foreground"
+            className="min-h-[38px] w-[200px] rounded-[8px] border-2 border-border-field bg-background px-3 font-hand text-[15px] text-foreground"
           >
             <option value="">Choisir…</option>
             {options.map((option) => (
@@ -389,7 +390,7 @@ function RelationSection({
         </div>
 
         <div className="flex flex-1 flex-col gap-1.5">
-          <label htmlFor={commentId} className="text-xs font-semibold text-muted">
+          <label htmlFor={commentId} className="font-hand text-[13px] text-muted">
             Commentaire (optionnel)
           </label>
           <input
@@ -397,14 +398,14 @@ function RelationSection({
             type="text"
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            className="min-h-[38px] w-full rounded-[8px] border border-border-field bg-surface px-3 text-[13.5px] text-foreground"
+            className="min-h-[38px] w-full rounded-[8px] border-2 border-border-field bg-background px-3 font-hand text-[15px] text-foreground"
           />
         </div>
 
         <button
           type="submit"
           disabled={!selected || isSubmitting}
-          className="min-h-[38px] rounded-[8px] bg-accent px-4 text-[13.5px] font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-60"
+          className={`min-h-[38px] border-2 border-accent bg-accent px-4 font-hand text-[15px] font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-60 ${SKETCH_RADIUS}`}
         >
           {isSubmitting ? "Ajout…" : addLabel}
         </button>

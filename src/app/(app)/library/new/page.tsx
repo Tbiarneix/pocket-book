@@ -18,13 +18,7 @@ export default function NewBookPage() {
 
   return (
     <div className="flex max-w-2xl flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-serif text-2xl font-semibold text-foreground">Ajouter un livre</h1>
-        <div className="flex items-center gap-2" aria-hidden="true">
-          <span className="h-px w-[26px] bg-border" />
-          <span className="text-[9px] text-accent">◆</span>
-        </div>
-      </div>
+      <h1 className="font-hand text-[32px] text-foreground">Ajouter un livre</h1>
       <BookForm onSubmit={handleSubmit} submitLabel="Ajouter le livre" />
     </div>
   );

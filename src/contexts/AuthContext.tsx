@@ -24,6 +24,15 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 // an effect. This also keeps the server-rendered pass (no access to
 // localStorage) and the client hydration pass consistent, with React
 // resyncing to the real value automatically once mounted.
+//
+// LocalAuthStore re-parses localStorage on every `.record`/`.token` access,
+// so `.record` returns a new object reference each call — that breaks
+// useSyncExternalStore's identity check (React sees a "changing" snapshot on
+// every render and bails out with a "Maximum update depth exceeded" loop).
+// We cache the derived snapshot and only recompute it when the (string,
+// referentially-stable-by-value) token actually changes.
+let cachedSnapshotToken = "";
+let cachedSnapshot: UserRecord | null = null;
 
 function subscribeToAuthStore(callback: () => void) {
   return getPocketBase().authStore.onChange(callback);
@@ -31,7 +40,12 @@ function subscribeToAuthStore(callback: () => void) {
 
 function getAuthSnapshot(): UserRecord | null {
   const pb = getPocketBase();
-  return pb.authStore.isValid ? (pb.authStore.record as unknown as UserRecord) : null;
+  const token = pb.authStore.token;
+  if (token !== cachedSnapshotToken) {
+    cachedSnapshotToken = token;
+    cachedSnapshot = pb.authStore.isValid ? (pb.authStore.record as unknown as UserRecord) : null;
+  }
+  return cachedSnapshot;
 }
 
 function getServerAuthSnapshot(): UserRecord | null {

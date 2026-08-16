@@ -18,10 +18,11 @@ import type {
   StatusRecord,
 } from "@/lib/types";
 import { SelectWithCreate } from "./SelectWithCreate";
+import { SKETCH_RADIUS } from "@/lib/sketch";
 
 const fieldClasses =
-  "min-h-11 rounded-[8px] border border-border-field bg-surface px-3 text-sm text-foreground";
-const labelClasses = "text-[13.5px] font-semibold text-foreground";
+  "min-h-11 rounded-[8px] border-2 border-border-field bg-surface px-3 font-hand text-base text-foreground";
+const labelClasses = "font-hand text-[16px] text-foreground";
 
 interface ReferenceData {
   authors: AuthorRecord[];
@@ -228,7 +229,7 @@ export function BookForm({
               <label
                 key={option.id}
                 htmlFor={checkboxId}
-                className="flex min-h-9 items-center gap-1.5 rounded-[8px] border border-border-field px-3 text-sm text-foreground"
+                className={`flex min-h-9 items-center gap-1.5 border-2 border-border-field bg-surface px-3 font-hand text-base text-foreground ${SKETCH_RADIUS}`}
               >
                 <input
                   id={checkboxId}
@@ -298,7 +299,7 @@ export function BookForm({
           rows={4}
           value={summary}
           onChange={(event) => setSummary(event.target.value)}
-          className="rounded-[8px] border border-border-field bg-surface px-3 py-2 text-sm text-foreground"
+          className="rounded-[8px] border-2 border-border-field bg-surface px-3 py-2 font-hand text-[17px] leading-[1.7] text-foreground"
         />
       </div>
 
@@ -311,7 +312,7 @@ export function BookForm({
           rows={4}
           value={opinion}
           onChange={(event) => setOpinion(event.target.value)}
-          className="rounded-[8px] border border-border-field bg-surface px-3 py-2 text-sm text-foreground"
+          className="rounded-[8px] border-2 border-border-field bg-surface px-3 py-2 font-hand text-[17px] leading-[1.7] text-foreground"
         />
       </div>
 
@@ -325,14 +326,14 @@ export function BookForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="min-h-11 rounded-[8px] bg-accent px-5 text-sm font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-60"
+          className={`min-h-11 border-2 border-accent bg-accent px-5 font-hand text-[17px] font-semibold text-accent-foreground rotate-[-0.3deg] hover:opacity-90 disabled:opacity-60 ${SKETCH_RADIUS}`}
         >
           {isSubmitting ? "Enregistrement…" : submitLabel}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="min-h-11 rounded-[8px] border border-border-strong px-5 text-sm font-semibold text-foreground hover:bg-surface-muted"
+          className={`min-h-11 border-2 border-border-strong bg-background px-5 font-hand text-[17px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
         >
           Annuler
         </button>

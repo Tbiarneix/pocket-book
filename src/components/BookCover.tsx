@@ -36,7 +36,7 @@ export function BookCover({
           className="flex h-full w-full items-center justify-center"
           style={{
             background:
-              "repeating-linear-gradient(135deg, var(--color-surface-muted), var(--color-surface-muted) 6px, var(--cover-stripe) 6px, var(--cover-stripe) 12px)",
+              "repeating-linear-gradient(135deg, var(--cover-stripe-a), var(--cover-stripe-a) 6px, var(--cover-stripe-b) 6px, var(--cover-stripe-b) 12px)",
           }}
         >
           <span className="font-mono text-[9px] text-muted" aria-hidden="true">

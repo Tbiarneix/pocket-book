@@ -20,13 +20,13 @@ export function RankingBadge({
 
   const sizeClasses =
     variant === "full"
-      ? "min-h-[26px] gap-2 rounded-[8px] px-3 py-0.5 text-[12.5px]"
-      : "min-h-[22px] gap-1.5 rounded-[7px] px-2 py-0.5 text-[11.5px]";
+      ? "min-h-[28px] gap-2 rounded-[9px] px-3 py-0.5 text-[15px]"
+      : "min-h-[24px] gap-1.5 rounded-[8px] px-2.5 py-0.5 text-[13px]";
 
   if (!tier) {
     return (
       <span
-        className={`inline-flex items-center border border-dashed border-border-field font-medium text-muted ${sizeClasses}`}
+        className={`inline-flex items-center border-2 border-dashed border-border-strong bg-background font-hand text-muted ${sizeClasses}`}
       >
         Non noté
       </span>
@@ -38,10 +38,10 @@ export function RankingBadge({
 
   return (
     <span
-      className={`inline-flex items-center border-[1.5px] border-accent bg-accent-soft font-semibold text-accent ${sizeClasses}`}
+      className={`inline-flex items-center border-[1.5px] border-accent bg-accent-soft font-hand font-semibold text-accent ${sizeClasses}`}
       title={`${ranking.name} — note ${rating}/10`}
     >
-      <span aria-hidden="true" className="text-[0.85em] leading-none">
+      <span aria-hidden="true" className="text-[0.75em] leading-none">
         {diamonds}
       </span>
       {variant === "full" ? `${ranking.name} · ${rating}/10` : `${rating}/10`}

@@ -1,25 +1,29 @@
 @import "tailwindcss";
 
 /*
- * Design tokens from the "Journal de lecture" design system (Claude Design,
- * handoff doc: design_handoff_journal_de_lecture). Variable names are kept
- * stable across light/dark so components never branch on color mode.
+ * Design tokens from the "Journal de lecture" design system — direction
+ * "Carnet à ligne" (handoff doc: design_handoff_journal_de_lecture, écrans
+ * 2a–2h). Variable names are kept stable across light/dark so components
+ * never branch on color mode.
  */
 :root {
-  --background: #faf8f4; /* papier */
-  --surface: #fffdfa;
+  --background: #faf6ec; /* papier réglé (fond de page) */
+  --paper-line: rgba(32, 27, 20, 0.14);
+  --surface: #fffdfa; /* surface pleine (connexion, filtres, tuiles stat) */
   --surface-muted: #f2ede4;
-  --foreground: #201b14; /* encre — 16,1:1 sur papier */
-  --muted: #5c5346; /* encre atténuée — 7,1:1 */
-  --border: #e0d7c7; /* bordure déco (séparateurs, cartes) */
-  --border-field: #948566; /* bordure de champ — 3,6:1 */
-  --border-strong: #7d735e; /* bordure forte (boutons outline) — 4,6:1 */
-  --accent: #9a3f18; /* 6,4:1 sur surface */
+  --foreground: #201b14; /* encre */
+  --muted: #5c5346; /* encre atténuée */
+  --border: #e0d7c7; /* bordure déco de carte */
+  --border-field: #948566; /* bordure pointillée / champs secondaires */
+  --border-strong: #7d735e; /* bordure forte, composants outline non actifs */
+  --accent: #ff5757;
   --accent-foreground: #fff8f0;
-  --accent-soft: #f6e5d9;
-  --accent-soft-border: #e0b79c;
-  --focus-ring: #9a3f18;
-  --cover-stripe: #e8e0d0;
+  --accent-soft: #ffe3e0; /* fond de badge actif */
+  --accent-soft-border: #ff5757;
+  --accent-light: #ff8f8f; /* usage décoratif ponctuel */
+  --focus-ring: #ff5757;
+  --cover-stripe-a: #efe6d3;
+  --cover-stripe-b: #e3d7bc;
   --dogear-shade: rgba(32, 27, 20, 0.16);
 }
 
@@ -37,26 +41,28 @@
   --color-accent-soft: var(--accent-soft);
   --color-accent-soft-border: var(--accent-soft-border);
   --font-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-hand: "Pangolin", "Comic Sans MS", cursive;
   --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #17140f;
-    --surface: #1f1b15;
-    --surface-muted: #29241c;
-    --foreground: #f3eee5; /* 14,8:1 */
-    --muted: #b8ab97; /* 7,6:1 */
-    --border: #3a3327;
-    --border-field: #7a6f55; /* 3,5:1 */
-    --border-strong: #948a70; /* 5,0:1 */
-    --accent: #e8946a; /* 7,2:1 sur surface */
-    --accent-foreground: #2a1305;
-    --accent-soft: #3a2417;
-    --accent-soft-border: #5c3d29;
-    --focus-ring: #e8946a;
-    --cover-stripe: #201c16;
+    --background: #1b1712; /* fond plein — pas de lignes réglées en sombre */
+    --surface: #23201a;
+    --surface-muted: #2b251c;
+    --foreground: #f1ece2; /* 15,1:1 */
+    --muted: #b5aa96; /* 7,8:1 */
+    --border: #2f291f;
+    --border-field: #6f6552; /* 3,1:1 */
+    --border-strong: #8f8368; /* 4,8:1 */
+    --accent: #ff5757;
+    --accent-foreground: #1b1712;
+    --accent-soft: #3a1f1c;
+    --accent-soft-border: #ff5757;
+    --accent-light: #ff8f8f;
+    --focus-ring: #ff5757;
+    --cover-stripe-a: #2a251d;
+    --cover-stripe-b: #332c22;
     --dogear-shade: rgba(255, 255, 255, 0.12);
   }
 }
@@ -66,8 +72,20 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: repeating-linear-gradient(
+    var(--background),
+    var(--background) 31px,
+    var(--paper-line) 31px,
+    var(--paper-line) 32px
+  );
   color: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image: none;
+  }
 }
 
 /* Strong, visible focus outline for keyboard users, on every focusable element. */

@@ -70,13 +70,7 @@ export default function StatsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-serif text-2xl font-semibold text-foreground">Statistiques</h1>
-        <div className="flex items-center gap-2" aria-hidden="true">
-          <span className="h-px w-[26px] bg-border" />
-          <span className="text-[9px] text-accent">◆</span>
-        </div>
-      </div>
+      <h1 className="font-hand text-[34px] text-foreground">Statistiques</h1>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatTile label="Livres au total" value={String(books.length)} />

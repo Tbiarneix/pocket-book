@@ -1,26 +1,24 @@
-import { BookOpen, CheckCheck, Layers, Sparkles, type LucideIcon } from "lucide-react";
-
 /**
  * Border treatment for a reading-status badge. Each status gets a distinct
- * shape in addition to its icon, so the badge never depends on color alone
- * (solid thin / solid thick+filled / dashed remain distinguishable in
- * grayscale).
+ * shape in addition to its glyph, so the badge never depends on color alone
+ * (solid thin / solid thick+filled / dashed / dotted remain distinguishable
+ * in grayscale).
  */
-export type StatusBorderVariant = "solid" | "active" | "dashed";
+export type StatusBorderVariant = "solid" | "active" | "dashed" | "dotted";
 
 export interface StatusStyle {
-  icon: LucideIcon;
+  glyph: string;
   border: StatusBorderVariant;
 }
 
 const STATUS_STYLES: Record<string, StatusStyle> = {
-  "ma pile à lire": { icon: Layers, border: "solid" },
-  "en cours": { icon: BookOpen, border: "active" },
-  "terminé": { icon: CheckCheck, border: "dashed" },
-  "mes envies": { icon: Sparkles, border: "solid" },
+  "ma pile à lire": { glyph: "▤", border: "solid" },
+  "en cours": { glyph: "→", border: "active" },
+  "terminé": { glyph: "✓", border: "dashed" },
+  "mes envies": { glyph: "★", border: "dotted" },
 };
 
-const DEFAULT_STYLE: StatusStyle = { icon: Layers, border: "solid" };
+const DEFAULT_STYLE: StatusStyle = { glyph: "▤", border: "solid" };
 
 export function getStatusStyle(name: string | null | undefined): StatusStyle {
   if (!name) return DEFAULT_STYLE;

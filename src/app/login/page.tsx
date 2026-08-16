@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { SKETCH_OUTLINE, SKETCH_RADIUS, SKETCH_UNDERLINE } from "@/lib/sketch";
 
 export default function LoginPage() {
   const { user, isLoading, login } = useAuth();
@@ -46,34 +46,22 @@ export default function LoginPage() {
   return (
     <main
       id="main-content"
-      className="flex min-h-screen items-center justify-center bg-background px-4"
+      className="flex min-h-screen items-center justify-center px-4"
     >
-      <div className="w-full max-w-sm rounded-[10px] border border-border bg-surface p-8 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-accent bg-accent-soft"
-          >
-            <BookOpen width={18} height={18} strokeWidth={1.8} className="text-accent" />
-          </span>
-          <h1 className="font-serif text-[19px] font-semibold text-foreground">
-            Journal de lecture
-          </h1>
-        </div>
+      <div
+        className={`w-full max-w-sm border-2 border-border-strong bg-surface p-8 rotate-[-0.3deg] ${SKETCH_RADIUS} ${SKETCH_OUTLINE}`}
+      >
+        <h1 className={`font-hand text-[30px] text-foreground ${SKETCH_UNDERLINE}`}>
+          Journal de lecture
+        </h1>
 
-        <div className="mt-5 flex items-center gap-2" aria-hidden="true">
-          <span className="h-px flex-1 bg-border" />
-          <span className="text-[9px] text-accent">◆</span>
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <p className="mt-5 text-[13px] text-muted">
+        <p className="mt-6 font-hand text-[17px] text-muted">
           Connecte-toi pour accéder à ta bibliothèque.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4" noValidate>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor={emailId} className="text-[13px] font-semibold text-foreground">
+            <label htmlFor={emailId} className="font-hand text-[15px] text-foreground">
               Adresse e-mail
             </label>
             <input
@@ -85,13 +73,13 @@ export default function LoginPage() {
               autoFocus
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="min-h-11 rounded-[8px] border border-border-field bg-surface px-3 text-sm text-foreground"
+              className="min-h-11 rounded-[8px] border-2 border-border-field bg-surface px-3 font-hand text-base text-foreground"
               aria-describedby={error ? errorId : undefined}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor={passwordId} className="text-[13px] font-semibold text-foreground">
+            <label htmlFor={passwordId} className="font-hand text-[15px] text-foreground">
               Mot de passe
             </label>
             <input
@@ -102,7 +90,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="min-h-11 rounded-[8px] border border-border-field bg-surface px-3 text-sm text-foreground"
+              className="min-h-11 rounded-[8px] border-2 border-border-field bg-surface px-3 font-hand text-base text-foreground"
               aria-describedby={error ? errorId : undefined}
             />
           </div>
@@ -118,7 +106,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-1 min-h-11 rounded-[8px] bg-accent px-4 font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+            className={`mt-1 min-h-11 border-2 border-accent bg-accent px-4 font-hand text-[17px] font-semibold text-accent-foreground transition-opacity rotate-[0.3deg] hover:opacity-90 disabled:opacity-60 ${SKETCH_RADIUS}`}
           >
             {isSubmitting ? "Connexion…" : "Se connecter"}
           </button>

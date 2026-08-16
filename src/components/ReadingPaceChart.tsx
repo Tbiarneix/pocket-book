@@ -10,11 +10,11 @@ export function ReadingPaceChart({ months }: { months: MonthlyCount[] }) {
   const summary = months.map((m) => `${m.label} : ${m.count}`).join(", ");
 
   return (
-    <section className="rounded-[10px] border border-border bg-surface px-5 py-[18px]">
-      <h2 className="font-serif text-[15px] font-semibold text-foreground">
+    <section className="rounded-[14px] border-2 border-dashed border-border-field bg-surface px-5 py-[18px]">
+      <h2 className="font-hand text-[22px] text-foreground">
         Rythme de lecture
       </h2>
-      <p className="mt-1 text-[12.5px] text-muted">
+      <p className="mt-1 font-hand text-[14px] text-muted">
         Livres terminés par mois, 12 derniers mois
       </p>
 
@@ -36,12 +36,12 @@ export function ReadingPaceChart({ months }: { months: MonthlyCount[] }) {
               className="w-full rounded-t-[3px] bg-accent"
               style={{ height: month.count === 0 ? 2 : `${(month.count / max) * 96}px` }}
             />
-            <span className="text-[10.5px] text-muted">{month.label}</span>
+            <span className="font-mono text-[10.5px] text-muted">{month.label}</span>
           </div>
         ))}
       </div>
 
-      <p className="mt-2.5 text-xs text-muted">
+      <p className="mt-2.5 font-hand text-[13px] text-muted">
         Chaque valeur est affichée en chiffres au-dessus de sa barre — le graphique reste
         lisible sans distinction de couleur.
       </p>

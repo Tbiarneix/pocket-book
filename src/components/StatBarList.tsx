@@ -24,11 +24,11 @@ export function StatBarList({
   const total = sorted.reduce((acc, item) => acc + item.count, 0);
 
   return (
-    <section className="rounded-[10px] border border-border bg-surface px-5 py-[18px]">
-      <h2 className="font-serif text-[15px] font-semibold text-foreground">{title}</h2>
+    <section className="rounded-[14px] border-2 border-dashed border-border-field bg-surface px-5 py-[18px]">
+      <h2 className="font-hand text-[22px] text-foreground">{title}</h2>
 
       {sorted.length === 0 ? (
-        <p className="mt-2 text-sm text-muted">{emptyLabel}</p>
+        <p className="mt-2 font-hand text-[15px] text-muted">{emptyLabel}</p>
       ) : (
         <ul className="mt-3.5 flex flex-col gap-2.5">
           {sorted.map((item) => {
@@ -36,14 +36,14 @@ export function StatBarList({
             const share = total > 0 ? Math.round((item.count / total) * 100) : 0;
             return (
               <li key={item.label} className="flex flex-col gap-1">
-                <div className="flex items-baseline justify-between gap-3 text-[13px]">
-                  <span className="text-foreground">{item.label}</span>
-                  <span className="shrink-0 text-muted">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-hand text-[16px] text-foreground">{item.label}</span>
+                  <span className="shrink-0 font-mono text-[13px] text-muted">
                     {item.count} · {share}%
                   </span>
                 </div>
                 <div
-                  className="h-2.5 w-full overflow-hidden rounded-full bg-surface-muted"
+                  className="h-2.5 w-full overflow-hidden rounded-full border border-border bg-surface-muted"
                   role="img"
                   aria-label={`${item.label} : ${item.count} livre${item.count > 1 ? "s" : ""}, ${share}% du total`}
                 >

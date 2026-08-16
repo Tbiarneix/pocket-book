@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { SKETCH_RADIUS } from "@/lib/sketch";
 
 interface Option {
   id: string;
@@ -8,7 +9,7 @@ interface Option {
 }
 
 const fieldClasses =
-  "min-h-11 rounded-[8px] border border-border-field bg-surface px-3 text-sm text-foreground";
+  "min-h-11 rounded-[8px] border-2 border-border-field bg-surface px-3 font-hand text-base text-foreground";
 
 export function SelectWithCreate({
   label,
@@ -51,7 +52,7 @@ export function SelectWithCreate({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={selectId} className="text-[13.5px] font-semibold text-foreground">
+      <label htmlFor={selectId} className="font-hand text-[16px] text-foreground">
         {label}
       </label>
 
@@ -73,7 +74,7 @@ export function SelectWithCreate({
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="min-h-11 shrink-0 rounded-[8px] border border-border-strong px-3.5 text-sm font-semibold text-foreground hover:bg-surface-muted"
+            className={`min-h-11 shrink-0 border-2 border-border-strong bg-background px-3.5 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
           >
             Nouveau
           </button>
@@ -96,7 +97,7 @@ export function SelectWithCreate({
             type="button"
             onClick={handleCreate}
             disabled={isSubmitting || !newName.trim()}
-            className="min-h-11 shrink-0 rounded-[8px] bg-accent px-3.5 text-sm font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-60"
+            className={`min-h-11 shrink-0 border-2 border-accent bg-accent px-3.5 font-hand text-[15px] font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-60 ${SKETCH_RADIUS}`}
           >
             {isSubmitting ? "…" : "Créer"}
           </button>
@@ -107,7 +108,7 @@ export function SelectWithCreate({
               setNewName("");
               setError(null);
             }}
-            className="min-h-11 shrink-0 rounded-[8px] border border-border-strong px-3.5 text-sm font-semibold text-foreground hover:bg-surface-muted"
+            className={`min-h-11 shrink-0 border-2 border-border-strong bg-background px-3.5 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
           >
             Annuler
           </button>
