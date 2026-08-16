@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { SKETCH_RADIUS, SKETCH_UNDERLINE } from "@/lib/sketch";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV_LINKS = [
   { href: "/library", label: "Bibliothèque" },
@@ -51,15 +52,18 @@ export function NavBar() {
           })}
         </ul>
 
-        <div className="flex items-center gap-3 font-hand text-[15px]">
-          {user && <span className="text-muted">{user.name || user.email}</span>}
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={`min-h-9 border-2 border-border-strong bg-background px-3.5 font-semibold text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
-          >
-            Se déconnecter
-          </button>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <div className="flex items-center gap-3 font-hand text-[15px]">
+            {user && <span className="text-muted">{user.name || user.email}</span>}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`min-h-9 border-2 border-border-strong bg-background px-3.5 font-semibold text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
+            >
+              Se déconnecter
+            </button>
+          </div>
         </div>
       </nav>
     </header>

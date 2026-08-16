@@ -5,10 +5,22 @@
  * "Carnet à ligne" (handoff doc: design_handoff_journal_de_lecture, écrans
  * 2a–2h). Variable names are kept stable across light/dark so components
  * never branch on color mode.
+ *
+ * Light is the default (bare :root). Dark applies either from the system
+ * preference (guarded by :not([data-theme="light"]) so an explicit light
+ * override wins) or from an explicit [data-theme="dark"] set by the header
+ * toggle (src/components/ThemeToggle.tsx) — see the inline script in
+ * layout.tsx that applies the stored choice before first paint.
  */
 :root {
   --background: #faf6ec; /* papier réglé (fond de page) */
   --paper-line: rgba(32, 27, 20, 0.14);
+  --ruled-bg: repeating-linear-gradient(
+    var(--background),
+    var(--background) 31px,
+    var(--paper-line) 31px,
+    var(--paper-line) 32px
+  ); /* pas de lignes réglées en sombre */
   --surface: #fffdfa; /* surface pleine (connexion, filtres, tuiles stat) */
   --surface-muted: #f2ede4;
   --foreground: #201b14; /* encre */
@@ -46,8 +58,9 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1b1712; /* fond plein — pas de lignes réglées en sombre */
+  :root:not([data-theme="light"]) {
+    --background: #1b1712;
+    --ruled-bg: none;
     --surface: #23201a;
     --surface-muted: #2b251c;
     --foreground: #f1ece2; /* 15,1:1 */
@@ -67,25 +80,35 @@
   }
 }
 
+:root[data-theme="dark"] {
+  --background: #1b1712;
+  --ruled-bg: none;
+  --surface: #23201a;
+  --surface-muted: #2b251c;
+  --foreground: #f1ece2;
+  --muted: #b5aa96;
+  --border: #2f291f;
+  --border-field: #6f6552;
+  --border-strong: #8f8368;
+  --accent: #ff5757;
+  --accent-foreground: #1b1712;
+  --accent-soft: #3a1f1c;
+  --accent-soft-border: #ff5757;
+  --accent-light: #ff8f8f;
+  --focus-ring: #ff5757;
+  --cover-stripe-a: #2a251d;
+  --cover-stripe-b: #332c22;
+  --dogear-shade: rgba(255, 255, 255, 0.12);
+}
+
 * {
   border-color: var(--border);
 }
 
 body {
   background-color: var(--background);
-  background-image: repeating-linear-gradient(
-    var(--background),
-    var(--background) 31px,
-    var(--paper-line) 31px,
-    var(--paper-line) 32px
-  );
+  background-image: var(--ruled-bg);
   color: var(--foreground);
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background-image: none;
-  }
 }
 
 /* Strong, visible focus outline for keyboard users, on every focusable element. */
