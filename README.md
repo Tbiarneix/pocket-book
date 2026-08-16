@@ -20,11 +20,16 @@ statuts, classements et statistiques de lecture.
 2. Renseigne l'URL de ton PocketBase dans `.env.local` :
 
    ```
-   NEXT_PUBLIC_POCKETBASE_URL=http://192.168.3.12:4242
+   NEXT_PUBLIC_POCKETBASE_URL=/pb
+   POCKETBASE_UPSTREAM_URL=http://86.215.21.247:4242
    ```
 
-   Remplace cette valeur par l'URL publique une fois que tu auras exposé
-   PocketBase (tunnel, reverse proxy, port forwarding + domaine).
+   Le navigateur ne parle qu'à `/pb` (même origine) ; Next.js redirige ça
+   côté serveur vers `POCKETBASE_UPSTREAM_URL` (voir `next.config.ts`). Ça
+   évite qu'un navigateur bloque un PocketBase en HTTP comme contenu mixte
+   sur une page servie en HTTPS, sans avoir à mettre du TLS sur PocketBase
+   lui-même. `POCKETBASE_UPSTREAM_URL` ne doit **jamais** avoir le préfixe
+   `NEXT_PUBLIC_` — sinon il finirait dans le bundle envoyé au navigateur.
 
 3. Lance le serveur de développement :
 
@@ -37,10 +42,13 @@ statuts, classements et statistiques de lecture.
 
 ## Déploiement (ex. Vercel)
 
-- Ajoute la variable d'environnement `NEXT_PUBLIC_POCKETBASE_URL` dans les
-  réglages du projet Vercel, pointant vers l'URL **publique** de ton
-  PocketBase (indispensable : Vercel ne peut pas atteindre une IP locale
-  comme `192.168.x.x`).
+- Ajoute les deux variables d'environnement dans les réglages du projet
+  Vercel : `NEXT_PUBLIC_POCKETBASE_URL=/pb` et `POCKETBASE_UPSTREAM_URL`
+  pointant vers l'URL **publique** de ton PocketBase (indispensable :
+  Vercel ne peut pas atteindre une IP locale comme `192.168.x.x`).
+- Après tout changement de variable d'environnement, redéploie **sans**
+  réutiliser le build cache — `NEXT_PUBLIC_*` est figé dans le JS au moment
+  du build, pas lu au runtime.
 - `npm run build` doit passer sans erreur (déjà vérifié).
 
 ## Ce qui a été configuré côté PocketBase
