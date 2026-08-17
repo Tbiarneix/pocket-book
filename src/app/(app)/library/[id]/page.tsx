@@ -222,16 +222,6 @@ export default function BookDetailPage({
             </section>
           )}
 
-          {book.opinion && (
-            <section aria-labelledby="opinion-heading" className="mt-2">
-              <h2 id="opinion-heading" className="font-hand text-[20px] text-foreground">
-                Mon avis
-              </h2>
-              <p className="mt-1 whitespace-pre-wrap font-hand text-[17px] leading-[1.75] text-foreground">
-                {book.opinion}
-              </p>
-            </section>
-          )}
         </div>
       </div>
 
@@ -290,6 +280,17 @@ export default function BookDetailPage({
         addLabel="Ajouter un arc narratif"
         selectLabel="Arc narratif"
       />
+
+      {book.opinion && (
+        <section aria-labelledby="opinion-heading">
+          <h2 id="opinion-heading" className="font-hand text-[20px] text-foreground">
+            Mon avis
+          </h2>
+          <p className="mt-1 whitespace-pre-wrap font-hand text-[17px] leading-[1.75] text-foreground">
+            {book.opinion}
+          </p>
+        </section>
+      )}
     </div>
   );
 }
