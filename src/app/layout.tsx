@@ -1,10 +1,23 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "La Bibliothèque de Swann’Oa",
   description: "Suivi personnel de lecture : livres, personnages et arcs narratifs.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Swann’Oa",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf6ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#1b1712" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -40,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Aller au contenu principal
         </a>
         <AuthProvider>{children}</AuthProvider>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

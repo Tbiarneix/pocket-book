@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Download, Library, Menu, Plus, X } from "lucide-react";
+import { BarChart3, Download, Library, Menu, Plus, Share, SquarePlus, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { SKETCH_RADIUS } from "@/lib/sketch";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -25,11 +26,21 @@ export function MobileNav() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [showIosHelp, setShowIosHelp] = useState(false);
+  const { canInstall, isIos, hasNativePrompt, promptInstall } = useInstallPrompt();
 
   function handleLogout() {
     setIsMoreOpen(false);
     logout();
     router.push("/login");
+  }
+
+  async function handleInstallClick() {
+    if (hasNativePrompt) {
+      await promptInstall();
+    } else if (isIos) {
+      setShowIosHelp(true);
+    }
   }
 
   return (
@@ -105,14 +116,16 @@ export function MobileNav() {
               <ThemeToggle />
             </div>
 
-            <button
-              type="button"
-              disabled
-              className={`mt-4 flex min-h-11 w-full items-center justify-center gap-2 border-2 border-border-strong bg-background px-4 font-hand text-[15px] text-muted disabled:opacity-60 ${SKETCH_RADIUS}`}
-            >
-              <Download aria-hidden="true" width={16} height={16} strokeWidth={2} />
-              Télécharger l’application
-            </button>
+            {canInstall && (
+              <button
+                type="button"
+                onClick={handleInstallClick}
+                className={`mt-4 flex min-h-11 w-full items-center justify-center gap-2 border-2 border-border-strong bg-background px-4 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
+              >
+                <Download aria-hidden="true" width={16} height={16} strokeWidth={2} />
+                Télécharger l’application
+              </button>
+            )}
 
             <button
               type="button"
@@ -121,6 +134,47 @@ export function MobileNav() {
             >
               Se déconnecter
             </button>
+          </div>
+        </div>
+      )}
+
+      {showIosHelp && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-6 sm:hidden">
+          <button
+            type="button"
+            aria-label="Fermer"
+            onClick={() => setShowIosHelp(false)}
+            className="absolute inset-0 bg-black/40"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Installer l’application"
+            className={`relative w-full max-w-sm border-2 border-border-strong bg-surface p-5 ${SKETCH_RADIUS}`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-hand text-[19px] text-foreground">
+                Installer l’application
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowIosHelp(false)}
+                aria-label="Fermer"
+                className="shrink-0 p-1 text-muted hover:text-foreground"
+              >
+                <X aria-hidden="true" width={20} height={20} strokeWidth={2} />
+              </button>
+            </div>
+            <ol className="mt-4 flex flex-col gap-3 font-hand text-[15px] text-foreground">
+              <li className="flex items-center gap-3">
+                <Share aria-hidden="true" width={20} height={20} strokeWidth={2} className="shrink-0 text-accent" />
+                Appuyez sur le bouton Partager, en bas de Safari.
+              </li>
+              <li className="flex items-center gap-3">
+                <SquarePlus aria-hidden="true" width={20} height={20} strokeWidth={2} className="shrink-0 text-accent" />
+                Choisissez « Sur l’écran d’accueil ».
+              </li>
+            </ol>
           </div>
         </div>
       )}
