@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { listBooks, listRankings } from "@/lib/data";
 import { findRankingForRating, sortRankingsByRating } from "@/lib/ranking";
-import { monthlyReadingPace } from "@/lib/stats";
+import { monthlyReadingPaceForYear } from "@/lib/stats";
 import type { ExpandedBookRecord, RankingRecord } from "@/lib/types";
 import { StatBarList } from "@/components/StatBarList";
 import { StatTile } from "@/components/StatTile";
@@ -13,6 +13,7 @@ export default function StatsPage() {
   const [books, setBooks] = useState<ExpandedBookRecord[] | null>(null);
   const [rankings, setRankings] = useState<RankingRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [paceYear, setPaceYear] = useState(() => new Date().getFullYear());
 
   useEffect(() => {
     let cancelled = false;
@@ -47,10 +48,10 @@ export default function StatsPage() {
       const ranking = findRankingForRating(rankings, book.rating);
       return ranking?.name;
     });
-    const readingPace = monthlyReadingPace(books);
+    const readingPace = monthlyReadingPaceForYear(books, paceYear);
 
     return { averageRating, byGenre, byStatus, byRanking, readingPace };
-  }, [books, rankings]);
+  }, [books, rankings, paceYear]);
 
   if (error) {
     return (
@@ -84,7 +85,12 @@ export default function StatsPage() {
         />
       </div>
 
-      <ReadingPaceChart months={stats.readingPace} />
+      <ReadingPaceChart
+        year={paceYear}
+        months={stats.readingPace}
+        onPrevYear={() => setPaceYear((y) => y - 1)}
+        onNextYear={() => setPaceYear((y) => y + 1)}
+      />
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <StatBarList

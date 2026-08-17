@@ -7,22 +7,22 @@ export interface MonthlyCount {
 }
 
 /**
- * Books finished per month for the last `monthCount` months (oldest first,
- * current month last). Buckets on `finished`, so any book with a finish
- * date counts — regardless of its current status.
+ * Books finished per month of a given calendar year (January through
+ * December), so the chart can page between years once there's more than
+ * one year of data. Buckets on `finished`, so any book with a finish date
+ * counts — regardless of its current status.
  */
-export function monthlyReadingPace(
+export function monthlyReadingPaceForYear(
   books: ExpandedBookRecord[],
-  monthCount = 12,
-  now: Date = new Date()
+  year: number
 ): MonthlyCount[] {
   const formatter = new Intl.DateTimeFormat("fr-FR", { month: "short" });
   const months: MonthlyCount[] = [];
 
-  for (let i = monthCount - 1; i >= 0; i -= 1) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+  for (let month = 0; month < 12; month += 1) {
+    const d = new Date(year, month, 1);
     months.push({
-      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      key: `${year}-${String(month + 1).padStart(2, "0")}`,
       label: formatter.format(d),
       count: 0,
     });
