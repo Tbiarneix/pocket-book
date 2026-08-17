@@ -16,6 +16,8 @@ import {
   listStorylines,
   removeBookCharacter,
   removeBookStoryline,
+  updateBookCharacter,
+  updateBookStoryline,
 } from "@/lib/data";
 import type {
   BookCharacterRecord,
@@ -256,6 +258,10 @@ export default function BookDetailPage({
           await removeBookCharacter(relationId);
           await refresh();
         }}
+        onUpdate={async (relationId, comment) => {
+          await updateBookCharacter(relationId, comment);
+          await refresh();
+        }}
         addLabel="Ajouter un personnage"
         selectLabel="Personnage"
       />
@@ -275,6 +281,10 @@ export default function BookDetailPage({
         }}
         onRemove={async (relationId) => {
           await removeBookStoryline(relationId);
+          await refresh();
+        }}
+        onUpdate={async (relationId, comment) => {
+          await updateBookStoryline(relationId, comment);
           await refresh();
         }}
         addLabel="Ajouter un arc narratif"
@@ -297,6 +307,7 @@ function RelationSection({
   options,
   onAdd,
   onRemove,
+  onUpdate,
   addLabel,
   selectLabel,
 }: {
@@ -306,6 +317,7 @@ function RelationSection({
   options: { id: string; name: string }[];
   onAdd: (refId: string, comment: string) => Promise<void>;
   onRemove: (relationId: string) => Promise<void>;
+  onUpdate: (relationId: string, comment: string) => Promise<void>;
   addLabel: string;
   selectLabel: string;
 }) {
@@ -313,8 +325,12 @@ function RelationSection({
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const selectId = useId();
   const commentId = useId();
+  const editId = useId();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -332,6 +348,25 @@ function RelationSection({
     }
   }
 
+  function startEditing(item: RelationItem) {
+    setEditingId(item.id);
+    setEditValue(item.comment === "N/A" ? "" : item.comment);
+    setError(null);
+  }
+
+  async function saveEdit(relationId: string) {
+    setIsSavingEdit(true);
+    setError(null);
+    try {
+      await onUpdate(relationId, editValue);
+      setEditingId(null);
+    } catch {
+      setError("La modification a échoué. Réessaie.");
+    } finally {
+      setIsSavingEdit(false);
+    }
+  }
+
   return (
     <section
       aria-labelledby={`${selectId}-heading`}
@@ -345,27 +380,75 @@ function RelationSection({
         <p className="mt-2 font-hand text-[15px] text-muted">{emptyLabel}</p>
       ) : (
         <ul className="mt-3 flex flex-col gap-2">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-start justify-between gap-3 rounded-[8px] bg-surface-muted px-3.5 py-2.5"
-            >
-              <div>
-                <p className="font-hand text-[16px] font-semibold text-foreground">{item.label}</p>
-                {item.comment && item.comment !== "N/A" && (
-                  <p className="mt-0.5 font-hand text-[15px] text-muted">{item.comment}</p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemove(item.id)}
-                className="min-h-8 shrink-0 font-hand text-[15px] text-accent hover:underline"
+          {items.map((item) =>
+            editingId === item.id ? (
+              <li
+                key={item.id}
+                className="flex flex-col gap-2 rounded-[8px] bg-surface-muted px-3.5 py-2.5"
               >
-                Retirer
-                <span className="sr-only"> {item.label}</span>
-              </button>
-            </li>
-          ))}
+                <p className="font-hand text-[16px] font-semibold text-foreground">{item.label}</p>
+                <label htmlFor={`${editId}-${item.id}`} className="sr-only">
+                  Commentaire pour {item.label}
+                </label>
+                <textarea
+                  id={`${editId}-${item.id}`}
+                  autoFocus
+                  rows={2}
+                  value={editValue}
+                  onChange={(event) => setEditValue(event.target.value)}
+                  className="w-full rounded-[8px] border-2 border-border-field bg-background px-3 py-2 font-hand text-[15px] text-foreground"
+                />
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => saveEdit(item.id)}
+                    disabled={isSavingEdit}
+                    className="min-h-8 shrink-0 font-hand text-[15px] font-semibold text-accent hover:underline disabled:opacity-60"
+                  >
+                    {isSavingEdit ? "Enregistrement…" : "Enregistrer"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(null)}
+                    disabled={isSavingEdit}
+                    className="min-h-8 shrink-0 font-hand text-[15px] text-muted hover:underline disabled:opacity-60"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </li>
+            ) : (
+              <li
+                key={item.id}
+                className="flex items-start justify-between gap-3 rounded-[8px] bg-surface-muted px-3.5 py-2.5"
+              >
+                <div>
+                  <p className="font-hand text-[16px] font-semibold text-foreground">{item.label}</p>
+                  {item.comment && item.comment !== "N/A" && (
+                    <p className="mt-0.5 font-hand text-[15px] text-muted">{item.comment}</p>
+                  )}
+                </div>
+                <div className="flex shrink-0 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => startEditing(item)}
+                    className="min-h-8 font-hand text-[15px] text-foreground hover:underline"
+                  >
+                    Modifier
+                    <span className="sr-only"> {item.label}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onRemove(item.id)}
+                    className="min-h-8 font-hand text-[15px] text-accent hover:underline"
+                  >
+                    Retirer
+                    <span className="sr-only"> {item.label}</span>
+                  </button>
+                </div>
+              </li>
+            )
+          )}
         </ul>
       )}
 

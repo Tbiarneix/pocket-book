@@ -179,6 +179,16 @@ export async function addBookCharacter(
     });
 }
 
+export async function updateBookCharacter(
+  id: string,
+  comment: string
+): Promise<BookCharacterRecord> {
+  const pb = getPocketBase();
+  return pb
+    .collection(COLLECTIONS.booksCharacters)
+    .update<BookCharacterRecord>(id, { comment });
+}
+
 export async function removeBookCharacter(id: string): Promise<void> {
   const pb = getPocketBase();
   await pb.collection(COLLECTIONS.booksCharacters).delete(id);
@@ -210,6 +220,16 @@ export async function addBookStoryline(
       storyline: storylineId,
       comment,
     });
+}
+
+export async function updateBookStoryline(
+  id: string,
+  comment: string
+): Promise<BookStorylineRecord> {
+  const pb = getPocketBase();
+  return pb
+    .collection(COLLECTIONS.booksStorylines)
+    .update<BookStorylineRecord>(id, { comment });
 }
 
 export async function removeBookStoryline(id: string): Promise<void> {
