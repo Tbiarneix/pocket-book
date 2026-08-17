@@ -14,7 +14,7 @@
  */
 :root {
   --background: #faf6ec; /* papier réglé (fond de page) */
-  --paper-line: rgba(32, 27, 20, 0.14);
+  --paper-line: rgba(32, 27, 20, 0.1);
   --ruled-bg: repeating-linear-gradient(
     var(--background),
     var(--background) 31px,
