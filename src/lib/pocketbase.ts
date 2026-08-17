@@ -20,6 +20,13 @@ export function getPocketBase(): PocketBase {
 
   if (!client) {
     client = new PocketBase(POCKETBASE_URL);
+    // The SDK auto-cancels an in-flight request when another one to the
+    // same collection+method starts before it resolves — meant for
+    // typeahead-style search-as-you-type. This app never relies on that,
+    // and several screens (e.g. AddBooksWizard) fire off a few genuine,
+    // unrelated requests to the same collection in quick succession, which
+    // would otherwise get silently aborted.
+    client.autoCancellation(false);
   }
 
   return client;

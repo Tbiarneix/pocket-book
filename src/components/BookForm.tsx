@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, Search } from "lucide-react";
 import {
   createAuthor,
-  createBook,
   createGenre,
   createSeries,
   listReferenceData,
@@ -23,13 +22,14 @@ import { htmlDescriptionToText, matchGenre, type GoogleBookResult } from "@/lib/
 import { SelectWithCreate } from "./SelectWithCreate";
 import { MarkdownTextarea } from "./MarkdownTextarea";
 import { BookSearchModal } from "./BookSearchModal";
+import { AddBooksWizard } from "./AddBooksWizard";
 import { SKETCH_RADIUS } from "@/lib/sketch";
 
 const fieldClasses =
   "min-h-11 rounded-[8px] border-2 border-border-field bg-surface px-3 font-hand text-base text-foreground";
 const labelClasses = "font-hand text-[16px] text-foreground";
 
-interface ReferenceData {
+export interface ReferenceData {
   authors: AuthorRecord[];
   series: SeriesRecord[];
   genres: GenreRecord[];
@@ -52,7 +52,7 @@ export function BookForm({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [quickAddNotice, setQuickAddNotice] = useState<string | null>(null);
+  const [wizardResults, setWizardResults] = useState<GoogleBookResult[] | null>(null);
 
   const [title, setTitle] = useState(initialBook?.title ?? "");
   const [coverUrl, setCoverUrl] = useState(initialBook?.cover_url ?? "");
@@ -130,71 +130,40 @@ export function BookForm({
     }
   }
 
-  async function resolveAuthorId(
-    name: string,
-    authorsRef: { current: AuthorRecord[] }
-  ): Promise<string> {
-    const existing = authorsRef.current.find(
+  async function resolveAuthorId(name: string): Promise<string> {
+    const existing = reference?.authors.find(
       (a) => a.name.toLowerCase() === name.toLowerCase()
     );
     if (existing) return existing.id;
     const created = await createAuthor(name);
-    authorsRef.current = [...authorsRef.current, created];
+    setReference((prev) => (prev ? { ...prev, authors: [...prev.authors, created] } : prev));
     return created.id;
   }
 
-  // Only the first pick fills in the form on screen. The rest are created
-  // straight away as bare-bones drafts (title/résumé/couverture/auteur·rice
-  // only, status "Mes envies") so a series or author search can queue up
-  // several books at once — the user finishes each one by hand afterwards.
+  // A single pick fills in the form on screen directly. Several picks (e.g.
+  // from a series or author search) open the step-by-step wizard instead,
+  // so each one gets added explicitly rather than silently in the
+  // background.
   async function handleSearchConfirm(selected: GoogleBookResult[]) {
     setShowSearch(false);
-    if (selected.length === 0 || !reference) return;
+    if (selected.length === 0) return;
 
-    const authorsRef = { current: reference.authors };
-    const [first, ...rest] = selected;
-
-    setTitle(first.title);
-    setCoverUrl(first.thumbnail);
-    setSummary(htmlDescriptionToText(first.description));
-    if (first.authors[0]) {
-      setAuthor(await resolveAuthorId(first.authors[0], authorsRef));
-    }
-    const firstGenre = matchGenre(first.categories, reference.genres);
-    if (firstGenre) setGenre(firstGenre.id);
-
-    if (rest.length > 0 && user) {
-      const wishlistStatus = reference.statuses.find((s) => s.name === "Mes envies");
-      for (const result of rest) {
-        const authorId = result.authors[0]
-          ? await resolveAuthorId(result.authors[0], authorsRef)
-          : "";
-        const genreMatch = matchGenre(result.categories, reference.genres);
-        await createBook(user.id, {
-          title: result.title,
-          cover_url: result.thumbnail,
-          summary: htmlDescriptionToText(result.description),
-          opinion: "",
-          author: authorId,
-          serie: "",
-          tome: null,
-          genre: genreMatch?.id ?? "",
-          subgenres: [],
-          rating: null,
-          status: wishlistStatus?.id ?? "",
-          finished: "",
-        });
-      }
-      setQuickAddNotice(
-        `${rest.length} autre${rest.length > 1 ? "s" : ""} livre${
-          rest.length > 1 ? "s" : ""
-        } ajouté${rest.length > 1 ? "s" : ""} en « ${
-          wishlistStatus?.name ?? "Mes envies"
-        } », à compléter depuis la bibliothèque.`
-      );
+    if (selected.length > 1) {
+      setWizardResults(selected);
+      return;
     }
 
-    setReference((prev) => (prev ? { ...prev, authors: authorsRef.current } : prev));
+    const [result] = selected;
+    setTitle(result.title);
+    setCoverUrl(result.thumbnail);
+    setSummary(htmlDescriptionToText(result.description));
+    if (result.authors[0]) {
+      setAuthor(await resolveAuthorId(result.authors[0]));
+    }
+    if (reference) {
+      const genreMatch = matchGenre(result.categories, reference.genres);
+      if (genreMatch) setGenre(genreMatch.id);
+    }
   }
 
   if (!reference) {
@@ -217,9 +186,6 @@ export function BookForm({
             <Search aria-hidden="true" width={15} height={15} strokeWidth={2} />
             Rechercher un livre
           </button>
-          {quickAddNotice && (
-            <p className="mt-2 font-hand text-[14px] text-muted">{quickAddNotice}</p>
-          )}
         </div>
 
       <div className="flex flex-col gap-1.5">
@@ -448,6 +414,16 @@ export function BookForm({
           initialQuery={title}
           onConfirm={handleSearchConfirm}
           onClose={() => setShowSearch(false)}
+        />
+      )}
+
+      {wizardResults && user && (
+        <AddBooksWizard
+          results={wizardResults}
+          reference={reference}
+          onReferenceChange={(updater) => setReference((prev) => (prev ? updater(prev) : prev))}
+          userId={user.id}
+          onClose={() => setWizardResults(null)}
         />
       )}
     </>
