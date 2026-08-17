@@ -3,7 +3,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Journal de lecture",
+  title: "La Bibliothèque de Swann’Oa",
   description: "Suivi personnel de lecture : livres, personnages et arcs narratifs.",
 };
 

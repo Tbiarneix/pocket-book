@@ -1,4 +1,4 @@
-# Journal de lecture
+# La Bibliothèque de Swann’Oa
 
 Application Next.js (TypeScript, Tailwind) connectée à ton backend PocketBase
 existant (« Acme ») : bibliothèque de livres, personnages, arcs narratifs,

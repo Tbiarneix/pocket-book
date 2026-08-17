@@ -51,8 +51,8 @@ export default function LoginPage() {
       <div
         className={`w-full max-w-sm border-2 border-border-strong bg-surface p-8 rotate-[-0.3deg] ${SKETCH_RADIUS} ${SKETCH_OUTLINE}`}
       >
-        <h1 className={`font-hand text-[30px] text-foreground ${SKETCH_UNDERLINE}`}>
-          Journal de lecture
+        <h1 className={`font-hand text-[26px] leading-tight text-foreground ${SKETCH_UNDERLINE}`}>
+          La Bibliothèque de Swann’Oa
         </h1>
 
         <p className="mt-6 font-hand text-[17px] text-muted">

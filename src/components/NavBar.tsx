@@ -29,7 +29,7 @@ export function NavBar() {
         className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-5 py-3"
       >
         <Link href="/library" className="font-hand text-[22px] text-foreground">
-          Journal de lecture
+          La Bibliothèque de Swann’Oa
         </Link>
 
         <ul className="flex items-center gap-5">
