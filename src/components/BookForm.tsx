@@ -53,6 +53,11 @@ export function BookForm({
   const [opinion, setOpinion] = useState(initialBook?.opinion ?? "");
   const [author, setAuthor] = useState(initialBook?.author ?? "");
   const [serie, setSerie] = useState(initialBook?.serie ?? "");
+  const [tome, setTome] = useState(
+    initialBook?.tome !== undefined && initialBook?.tome !== null
+      ? String(initialBook.tome)
+      : ""
+  );
   const [genre, setGenre] = useState(initialBook?.genre ?? "");
   const [subgenres, setSubgenres] = useState<string[]>(
     initialBook?.subgenres ?? []
@@ -68,6 +73,7 @@ export function BookForm({
   );
 
   const titleId = useId();
+  const tomeId = useId();
   const coverId = useId();
   const summaryId = useId();
   const opinionId = useId();
@@ -104,6 +110,7 @@ export function BookForm({
         opinion,
         author,
         serie,
+        tome: tome === "" ? null : Number(tome),
         genre,
         subgenres,
         rating: rating === "" ? null : Number(rating),
@@ -170,19 +177,37 @@ export function BookForm({
           }}
         />
 
-        <SelectWithCreate
-          label="Série"
-          value={serie}
-          options={reference.series}
-          onChange={setSerie}
-          onCreate={async (name) => {
-            const created = await createSeries(name);
-            setReference((prev) =>
-              prev ? { ...prev, series: [...prev.series, created] } : prev
-            );
-            return created;
-          }}
-        />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <SelectWithCreate
+              label="Série"
+              value={serie}
+              options={reference.series}
+              onChange={setSerie}
+              onCreate={async (name) => {
+                const created = await createSeries(name);
+                setReference((prev) =>
+                  prev ? { ...prev, series: [...prev.series, created] } : prev
+                );
+                return created;
+              }}
+            />
+          </div>
+          <div className="flex w-20 shrink-0 flex-col gap-1.5">
+            <label htmlFor={tomeId} className={labelClasses}>
+              Tome
+            </label>
+            <input
+              id={tomeId}
+              type="number"
+              min={1}
+              step={1}
+              value={tome}
+              onChange={(event) => setTome(event.target.value)}
+              className={`${fieldClasses} font-mono`}
+            />
+          </div>
+        </div>
 
         <SelectWithCreate
           label="Genre"

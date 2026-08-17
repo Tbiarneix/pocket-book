@@ -197,6 +197,7 @@ export default function BookDetailPage({
             {serie && (
               <span className="inline-flex min-h-[28px] items-center rounded-[9px] border-2 border-border-field bg-background px-2.5 font-hand text-[14px] text-muted">
                 Série : {serie}
+                {book.tome ? ` · Tome ${book.tome}` : ""}
               </span>
             )}
             {genre && (

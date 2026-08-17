@@ -15,6 +15,8 @@ export function BookCard({
 }) {
   const author = book.expand?.author?.name;
   const status = book.expand?.status?.name;
+  const serie = book.expand?.serie?.name;
+  const subtitle = serie ? (book.tome ? `${serie} · Tome ${book.tome}` : serie) : null;
 
   return (
     <li
@@ -28,6 +30,7 @@ export function BookCard({
             {book.title}
           </Link>
         </h3>
+        {subtitle && <p className="font-hand text-[13px] text-accent">{subtitle}</p>}
         {author && <p className="font-hand text-[15px] text-muted">{author}</p>}
 
         <div className="mt-0.5 flex flex-wrap items-center gap-1.5">

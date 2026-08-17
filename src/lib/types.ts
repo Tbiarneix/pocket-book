@@ -54,6 +54,7 @@ export interface BookRecord extends BaseRecord {
   opinion: string;
   author: string;
   serie: string;
+  tome: number | null;
   genre: string;
   subgenres: string[];
   rating: number;

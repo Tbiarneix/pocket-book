@@ -63,16 +63,27 @@ export default function LibraryPage() {
     if (!books) return [];
     const query = search.trim().toLowerCase();
 
-    return books.filter((book) => {
-      if (statusFilter && book.status !== statusFilter) return false;
-      if (genreFilter && book.genre !== genreFilter) return false;
-      if (seriesFilter && book.serie !== seriesFilter) return false;
-      if (query) {
-        const haystack = `${book.title} ${book.expand?.author?.name ?? ""}`.toLowerCase();
-        if (!haystack.includes(query)) return false;
-      }
-      return true;
-    });
+    return books
+      .filter((book) => {
+        if (statusFilter && book.status !== statusFilter) return false;
+        if (genreFilter && book.genre !== genreFilter) return false;
+        if (seriesFilter && book.serie !== seriesFilter) return false;
+        if (query) {
+          const haystack = `${book.title} ${book.expand?.author?.name ?? ""}`.toLowerCase();
+          if (!haystack.includes(query)) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        // Group by série (alphabetically), tomes within a série in order;
+        // standalone books are grouped under their own title instead.
+        const groupA = a.expand?.serie?.name ?? a.title;
+        const groupB = b.expand?.serie?.name ?? b.title;
+        const groupCompare = groupA.localeCompare(groupB, "fr", { sensitivity: "base" });
+        if (groupCompare !== 0) return groupCompare;
+        if (a.tome !== b.tome) return (a.tome ?? 0) - (b.tome ?? 0);
+        return a.title.localeCompare(b.title, "fr", { sensitivity: "base" });
+      });
   }, [books, search, statusFilter, genreFilter, seriesFilter]);
 
   const hasActiveFilters =
