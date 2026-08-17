@@ -127,12 +127,13 @@ export async function listCharacters(): Promise<CharacterRecord[]> {
 }
 
 export async function createCharacter(
-  name: string
+  name: string,
+  serie: string
 ): Promise<CharacterRecord> {
   const pb = getPocketBase();
   return pb
     .collection(COLLECTIONS.characters)
-    .create<CharacterRecord>({ name });
+    .create<CharacterRecord>({ name, serie });
 }
 
 export async function listStorylines(): Promise<StorylineRecord[]> {
@@ -143,12 +144,13 @@ export async function listStorylines(): Promise<StorylineRecord[]> {
 }
 
 export async function createStoryline(
-  name: string
+  name: string,
+  serie: string
 ): Promise<StorylineRecord> {
   const pb = getPocketBase();
   return pb
     .collection(COLLECTIONS.storylines)
-    .create<StorylineRecord>({ name });
+    .create<StorylineRecord>({ name, serie });
 }
 
 export async function listBookCharacters(

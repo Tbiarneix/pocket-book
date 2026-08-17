@@ -7,6 +7,8 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import {
   addBookCharacter,
   addBookStoryline,
+  createCharacter,
+  createStoryline,
   deleteBook,
   getBook,
   listBookCharacters,
@@ -137,6 +139,12 @@ export default function BookDetailPage({
   const subgenres = book.expand?.subgenres ?? [];
   const status = book.expand?.status?.name;
 
+  // Characters/storylines are scoped to a série (reusable across every tome
+  // of that série) so the picker doesn't mix in unrelated books' casts —
+  // standalone books (no série) get their own separate, unshared pool.
+  const seriesCharacters = allCharacters.filter((c) => c.serie === book.serie);
+  const seriesStorylines = allStorylines.filter((s) => s.serie === book.serie);
+
   return (
     <div className="flex flex-col gap-8">
       <Link
@@ -240,7 +248,7 @@ export default function BookDetailPage({
           label: bc.expand?.character?.name ?? "Personnage",
           comment: bc.comment,
         }))}
-        options={allCharacters}
+        options={seriesCharacters}
         onAdd={async (refId, comment) => {
           await addBookCharacter(id, refId, comment);
           await refresh();
@@ -253,6 +261,7 @@ export default function BookDetailPage({
           await updateBookCharacter(relationId, comment);
           await refresh();
         }}
+        onCreateOption={async (name) => createCharacter(name, book.serie)}
         addLabel="Ajouter un personnage"
         selectLabel="Personnage"
       />
@@ -265,7 +274,7 @@ export default function BookDetailPage({
           label: bs.expand?.storyline?.name ?? "Arc narratif",
           comment: bs.comment,
         }))}
-        options={allStorylines}
+        options={seriesStorylines}
         onAdd={async (refId, comment) => {
           await addBookStoryline(id, refId, comment);
           await refresh();
@@ -278,6 +287,7 @@ export default function BookDetailPage({
           await updateBookStoryline(relationId, comment);
           await refresh();
         }}
+        onCreateOption={async (name) => createStoryline(name, book.serie)}
         addLabel="Ajouter un arc narratif"
         selectLabel="Arc narratif"
       />
@@ -310,6 +320,7 @@ function RelationSection({
   onAdd,
   onRemove,
   onUpdate,
+  onCreateOption,
   addLabel,
   selectLabel,
 }: {
@@ -320,6 +331,7 @@ function RelationSection({
   onAdd: (refId: string, comment: string) => Promise<void>;
   onRemove: (relationId: string) => Promise<void>;
   onUpdate: (relationId: string, comment: string) => Promise<void>;
+  onCreateOption: (name: string) => Promise<{ id: string; name: string }>;
   addLabel: string;
   selectLabel: string;
 }) {
@@ -330,21 +342,28 @@ function RelationSection({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isCreatingOption, setIsCreatingOption] = useState(false);
+  const [newOptionName, setNewOptionName] = useState("");
   const selectId = useId();
   const commentId = useId();
   const editId = useId();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selected) return;
+    if (isCreatingOption ? !newOptionName.trim() : !selected) return;
     setIsSubmitting(true);
     setError(null);
     try {
-      await onAdd(selected, comment);
+      const refId = isCreatingOption
+        ? (await onCreateOption(newOptionName.trim())).id
+        : selected;
+      await onAdd(refId, comment);
       setSelected("");
       setComment("");
+      setIsCreatingOption(false);
+      setNewOptionName("");
     } catch {
-      setError("L'ajout a échoué. Réessaie.");
+      setError(isCreatingOption ? "La création a échoué. Réessaie." : "L'ajout a échoué. Réessaie.");
     } finally {
       setIsSubmitting(false);
     }
@@ -455,24 +474,53 @@ function RelationSection({
       )}
 
       <form onSubmit={handleSubmit} className="mt-4 flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={selectId} className="font-hand text-[13px] text-muted">
-            {selectLabel}
-          </label>
-          <select
-            id={selectId}
-            value={selected}
-            onChange={(event) => setSelected(event.target.value)}
-            className="min-h-[38px] w-[200px] rounded-[8px] border-2 border-border-field bg-background px-3 font-hand text-[15px] text-foreground"
-          >
-            <option value="">Choisir…</option>
-            {options.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {isCreatingOption ? (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={selectId} className="font-hand text-[13px] text-muted">
+              Nouveau : {selectLabel.toLowerCase()}
+            </label>
+            <input
+              id={selectId}
+              type="text"
+              autoFocus
+              value={newOptionName}
+              onChange={(event) => setNewOptionName(event.target.value)}
+              className="min-h-[38px] w-[200px] rounded-[8px] border-2 border-border-field bg-background px-3 font-hand text-[15px] text-foreground"
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={selectId} className="font-hand text-[13px] text-muted">
+              {selectLabel}
+            </label>
+            <select
+              id={selectId}
+              value={selected}
+              onChange={(event) => setSelected(event.target.value)}
+              className="min-h-[38px] w-[200px] rounded-[8px] border-2 border-border-field bg-background px-3 font-hand text-[15px] text-foreground"
+            >
+              <option value="">Choisir…</option>
+              {options.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => {
+            setIsCreatingOption((prev) => !prev);
+            setSelected("");
+            setNewOptionName("");
+            setError(null);
+          }}
+          className="min-h-[38px] shrink-0 font-hand text-[15px] text-foreground hover:underline"
+        >
+          {isCreatingOption ? "Choisir dans la liste" : "+ Nouveau"}
+        </button>
 
         <div className="flex flex-1 flex-col gap-1.5">
           <label htmlFor={commentId} className="font-hand text-[13px] text-muted">
@@ -489,7 +537,7 @@ function RelationSection({
 
         <button
           type="submit"
-          disabled={!selected || isSubmitting}
+          disabled={(isCreatingOption ? !newOptionName.trim() : !selected) || isSubmitting}
           className={`min-h-[38px] border-2 border-accent bg-accent px-4 font-hand text-[15px] font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-60 ${SKETCH_RADIUS}`}
         >
           {isSubmitting ? "Ajout…" : addLabel}

@@ -38,10 +38,12 @@ export interface RankingRecord extends BaseRecord {
 
 export interface CharacterRecord extends BaseRecord {
   name: string;
+  serie: string;
 }
 
 export interface StorylineRecord extends BaseRecord {
   name: string;
+  serie: string;
 }
 
 export interface BookRecord extends BaseRecord {
