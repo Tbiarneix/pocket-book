@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Search } from "lucide-react";
 import {
   createAuthor,
+  createBook,
   createGenre,
   createSeries,
   listReferenceData,
@@ -17,8 +18,11 @@ import type {
   SeriesRecord,
   StatusRecord,
 } from "@/lib/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { htmlDescriptionToText, matchGenre, type GoogleBookResult } from "@/lib/googleBooks";
 import { SelectWithCreate } from "./SelectWithCreate";
 import { MarkdownTextarea } from "./MarkdownTextarea";
+import { BookSearchModal } from "./BookSearchModal";
 import { SKETCH_RADIUS } from "@/lib/sketch";
 
 const fieldClasses =
@@ -42,10 +46,13 @@ export function BookForm({
   submitLabel: string;
 }) {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [reference, setReference] = useState<ReferenceData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [quickAddNotice, setQuickAddNotice] = useState<string | null>(null);
 
   const [title, setTitle] = useState(initialBook?.title ?? "");
   const [coverUrl, setCoverUrl] = useState(initialBook?.cover_url ?? "");
@@ -123,6 +130,73 @@ export function BookForm({
     }
   }
 
+  async function resolveAuthorId(
+    name: string,
+    authorsRef: { current: AuthorRecord[] }
+  ): Promise<string> {
+    const existing = authorsRef.current.find(
+      (a) => a.name.toLowerCase() === name.toLowerCase()
+    );
+    if (existing) return existing.id;
+    const created = await createAuthor(name);
+    authorsRef.current = [...authorsRef.current, created];
+    return created.id;
+  }
+
+  // Only the first pick fills in the form on screen. The rest are created
+  // straight away as bare-bones drafts (title/résumé/couverture/auteur·rice
+  // only, status "Mes envies") so a series or author search can queue up
+  // several books at once — the user finishes each one by hand afterwards.
+  async function handleSearchConfirm(selected: GoogleBookResult[]) {
+    setShowSearch(false);
+    if (selected.length === 0 || !reference) return;
+
+    const authorsRef = { current: reference.authors };
+    const [first, ...rest] = selected;
+
+    setTitle(first.title);
+    setCoverUrl(first.thumbnail);
+    setSummary(htmlDescriptionToText(first.description));
+    if (first.authors[0]) {
+      setAuthor(await resolveAuthorId(first.authors[0], authorsRef));
+    }
+    const firstGenre = matchGenre(first.categories, reference.genres);
+    if (firstGenre) setGenre(firstGenre.id);
+
+    if (rest.length > 0 && user) {
+      const wishlistStatus = reference.statuses.find((s) => s.name === "Mes envies");
+      for (const result of rest) {
+        const authorId = result.authors[0]
+          ? await resolveAuthorId(result.authors[0], authorsRef)
+          : "";
+        const genreMatch = matchGenre(result.categories, reference.genres);
+        await createBook(user.id, {
+          title: result.title,
+          cover_url: result.thumbnail,
+          summary: htmlDescriptionToText(result.description),
+          opinion: "",
+          author: authorId,
+          serie: "",
+          tome: null,
+          genre: genreMatch?.id ?? "",
+          subgenres: [],
+          rating: null,
+          status: wishlistStatus?.id ?? "",
+          finished: "",
+        });
+      }
+      setQuickAddNotice(
+        `${rest.length} autre${rest.length > 1 ? "s" : ""} livre${
+          rest.length > 1 ? "s" : ""
+        } ajouté${rest.length > 1 ? "s" : ""} en « ${
+          wishlistStatus?.name ?? "Mes envies"
+        } », à compléter depuis la bibliothèque.`
+      );
+    }
+
+    setReference((prev) => (prev ? { ...prev, authors: authorsRef.current } : prev));
+  }
+
   if (!reference) {
     return (
       <p role="status" className="text-muted">
@@ -132,7 +206,22 @@ export function BookForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+    <>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowSearch(true)}
+            className={`flex min-h-10 items-center gap-1.5 border-2 border-border-strong bg-background px-3.5 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
+          >
+            <Search aria-hidden="true" width={15} height={15} strokeWidth={2} />
+            Rechercher un livre
+          </button>
+          {quickAddNotice && (
+            <p className="mt-2 font-hand text-[14px] text-muted">{quickAddNotice}</p>
+          )}
+        </div>
+
       <div className="flex flex-col gap-1.5">
         <label htmlFor={titleId} className={labelClasses}>
           Titre <span aria-hidden="true" className="text-accent">*</span>
@@ -352,6 +441,15 @@ export function BookForm({
           Annuler
         </button>
       </div>
-    </form>
+      </form>
+
+      {showSearch && (
+        <BookSearchModal
+          initialQuery={title}
+          onConfirm={handleSearchConfirm}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+    </>
   );
 }
