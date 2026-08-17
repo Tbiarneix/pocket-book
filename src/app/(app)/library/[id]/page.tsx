@@ -30,6 +30,7 @@ import type {
 import { RankingBadge } from "@/components/RankingBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookCover } from "@/components/BookCover";
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { isActiveStatus } from "@/lib/statusStyle";
 import { SKETCH_RADIUS, SKETCH_UNDERLINE } from "@/lib/sketch";
 
@@ -216,9 +217,9 @@ export default function BookDetailPage({
               <h2 id="summary-heading" className="font-hand text-[20px] text-foreground">
                 Résumé
               </h2>
-              <p className="mt-1 whitespace-pre-wrap font-hand text-[17px] leading-[1.75] text-foreground">
-                {book.summary}
-              </p>
+              <div className="mt-1">
+                <MarkdownContent text={book.summary} />
+              </div>
             </section>
           )}
 
@@ -286,9 +287,9 @@ export default function BookDetailPage({
           <h2 id="opinion-heading" className="font-hand text-[20px] text-foreground">
             Mon avis
           </h2>
-          <p className="mt-1 whitespace-pre-wrap font-hand text-[17px] leading-[1.75] text-foreground">
-            {book.opinion}
-          </p>
+          <div className="mt-1">
+            <MarkdownContent text={book.opinion} />
+          </div>
         </section>
       )}
     </div>

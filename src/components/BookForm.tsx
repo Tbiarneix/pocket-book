@@ -18,6 +18,7 @@ import type {
   StatusRecord,
 } from "@/lib/types";
 import { SelectWithCreate } from "./SelectWithCreate";
+import { MarkdownTextarea } from "./MarkdownTextarea";
 import { SKETCH_RADIUS } from "@/lib/sketch";
 
 const fieldClasses =
@@ -294,26 +295,14 @@ export function BookForm({
         <label htmlFor={summaryId} className={labelClasses}>
           Résumé
         </label>
-        <textarea
-          id={summaryId}
-          rows={4}
-          value={summary}
-          onChange={(event) => setSummary(event.target.value)}
-          className="rounded-[8px] border-2 border-border-field bg-surface px-3 py-2 font-hand text-[17px] leading-[1.7] text-foreground"
-        />
+        <MarkdownTextarea id={summaryId} value={summary} onChange={setSummary} rows={4} />
       </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor={opinionId} className={labelClasses}>
           Mon avis
         </label>
-        <textarea
-          id={opinionId}
-          rows={4}
-          value={opinion}
-          onChange={(event) => setOpinion(event.target.value)}
-          className="rounded-[8px] border-2 border-border-field bg-surface px-3 py-2 font-hand text-[17px] leading-[1.7] text-foreground"
-        />
+        <MarkdownTextarea id={opinionId} value={opinion} onChange={setOpinion} rows={4} />
       </div>
 
       {error && (
