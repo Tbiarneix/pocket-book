@@ -23,7 +23,7 @@ export function NavBar() {
   }
 
   return (
-    <header className="border-b-2 border-border-strong bg-surface">
+    <header className="hidden border-b-2 border-border-strong bg-surface sm:block">
       <nav
         aria-label="Navigation principale"
         className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-5 py-3"
