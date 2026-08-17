@@ -1,11 +1,15 @@
 import type { RankingRecord } from "@/lib/types";
 import { getRankingTier } from "@/lib/ranking";
 
+const DIAMOND_COUNT = 5;
+
 /**
- * Ranking badge: filled/empty diamonds carry the tier rank, but the exact
- * numeric rating is always shown alongside in digits, and in "full" variant
- * the tier name is spelled out too — no information is carried by the
- * accent-fill color alone.
+ * Ranking badge: filled/empty diamonds visualize the /10 rating on a 5-mark
+ * scale (2 points per diamond) — independent of how many ranking tiers
+ * exist, so the glyph always reads the same way regardless of tier count.
+ * The exact numeric rating is always shown alongside in digits, and in
+ * "full" variant the tier name is spelled out too — no information is
+ * carried by the accent-fill color alone.
  */
 export function RankingBadge({
   rating,
@@ -33,8 +37,9 @@ export function RankingBadge({
     );
   }
 
-  const { ranking, index, total } = tier;
-  const diamonds = "◆".repeat(index + 1) + "◇".repeat(Math.max(0, total - index - 1));
+  const { ranking } = tier;
+  const filled = Math.round((rating as number) / 2);
+  const diamonds = "◆".repeat(filled) + "◇".repeat(DIAMOND_COUNT - filled);
 
   return (
     <span
