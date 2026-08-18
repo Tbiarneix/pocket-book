@@ -15,10 +15,12 @@ export function RankingBadge({
   rating,
   rankings,
   variant = "compact",
+  dimmed = false,
 }: {
   rating: number | null | undefined;
   rankings: RankingRecord[];
   variant?: "compact" | "full";
+  dimmed?: boolean;
 }) {
   const tier = getRankingTier(rankings, rating);
 
@@ -41,9 +43,13 @@ export function RankingBadge({
   const filled = Math.round((rating as number) / 2);
   const diamonds = "◆".repeat(filled) + "◇".repeat(DIAMOND_COUNT - filled);
 
+  const toneClasses = dimmed
+    ? "border-[1.5px] border-border-strong bg-background text-foreground"
+    : "border-[1.5px] border-accent bg-accent-soft text-accent";
+
   return (
     <span
-      className={`inline-flex items-center border-[1.5px] border-accent bg-accent-soft font-hand font-semibold text-accent ${sizeClasses}`}
+      className={`inline-flex items-center font-hand font-semibold ${toneClasses} ${sizeClasses}`}
       title={`${ranking.name} — note ${rating}/10`}
     >
       <span aria-hidden="true" className="text-[0.75em] leading-none">

@@ -65,6 +65,7 @@ export interface BookRecord extends BaseRecord {
   rating: number;
   status: string;
   finished: string;
+  loaned_to: string;
 }
 
 /** Book with its relations resolved via PocketBase's `expand`. */

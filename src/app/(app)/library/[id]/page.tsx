@@ -3,7 +3,7 @@
 import { use, useEffect, useId, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Handshake, Pencil, Trash2, Undo2 } from "lucide-react";
 import {
   addBookCharacter,
   addBookStoryline,
@@ -16,9 +16,11 @@ import {
   listCharacters,
   listRankings,
   listStorylineComments,
+  loanBook,
   removeBookCharacter,
   removeBookStoryline,
   reopenBookStoryline,
+  returnBook,
   updateBookCharacter,
   updateBookStoryline,
 } from "@/lib/data";
@@ -32,7 +34,9 @@ import type {
 import { RankingBadge } from "@/components/RankingBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookCover } from "@/components/BookCover";
+import { LoanBookModal } from "@/components/LoanBookModal";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { ReturnBookModal } from "@/components/ReturnBookModal";
 import { StorylineArcsSection } from "@/components/StorylineArcsSection";
 import { isActiveStatus } from "@/lib/statusStyle";
 import { SKETCH_RADIUS, SKETCH_UNDERLINE } from "@/lib/sketch";
@@ -64,6 +68,8 @@ export default function BookDetailPage({
   const [allCharacters, setAllCharacters] = useState<CharacterRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,6 +117,18 @@ export default function BookDetailPage({
       setError("La suppression a échoué. Réessaie.");
       setIsDeleting(false);
     }
+  }
+
+  async function handleLoan(loanedTo: string) {
+    await loanBook(id, loanedTo);
+    setIsLoanModalOpen(false);
+    await refresh();
+  }
+
+  async function handleReturn() {
+    await returnBook(id);
+    setIsReturnModalOpen(false);
+    await refresh();
   }
 
   if (error && !book) {
@@ -173,8 +191,32 @@ export default function BookDetailPage({
                 <p className="mt-1 font-hand text-[18px] text-accent">{serieSubtitle}</p>
               )}
               {author && <p className="mt-1 font-hand text-[17px] text-muted">{author}</p>}
+              {book.loaned_to && (
+                <p className="mt-1 font-hand text-[15px] text-accent">
+                  Prêté à {book.loaned_to}
+                </p>
+              )}
             </div>
             <div className="flex gap-2">
+              {book.loaned_to ? (
+                <button
+                  type="button"
+                  onClick={() => setIsReturnModalOpen(true)}
+                  className={`inline-flex min-h-11 items-center gap-1.5 border-2 border-border-strong bg-background px-3.5 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
+                >
+                  <Undo2 aria-hidden="true" width={14} height={14} strokeWidth={2} />
+                  Récupérer
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsLoanModalOpen(true)}
+                  className={`inline-flex min-h-11 items-center gap-1.5 border-2 border-border-strong bg-background px-3.5 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
+                >
+                  <Handshake aria-hidden="true" width={14} height={14} strokeWidth={2} />
+                  Prêter
+                </button>
+              )}
               <Link
                 href={`/library/${id}/edit`}
                 className={`inline-flex min-h-11 items-center gap-1.5 border-2 border-border-strong bg-background px-3.5 font-hand text-[15px] text-foreground hover:bg-surface-muted ${SKETCH_RADIUS}`}
@@ -306,6 +348,23 @@ export default function BookDetailPage({
             <MarkdownContent text={book.opinion} />
           </div>
         </section>
+      )}
+
+      {isLoanModalOpen && (
+        <LoanBookModal
+          bookTitle={book.title}
+          onConfirm={handleLoan}
+          onClose={() => setIsLoanModalOpen(false)}
+        />
+      )}
+
+      {isReturnModalOpen && (
+        <ReturnBookModal
+          bookTitle={book.title}
+          loanedTo={book.loaned_to}
+          onConfirm={handleReturn}
+          onClose={() => setIsReturnModalOpen(false)}
+        />
       )}
     </div>
   );

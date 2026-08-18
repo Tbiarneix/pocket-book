@@ -70,6 +70,16 @@ export async function deleteBook(id: string): Promise<void> {
   await pb.collection(COLLECTIONS.books).delete(id);
 }
 
+export async function loanBook(id: string, loanedTo: string): Promise<BookRecord> {
+  const pb = getPocketBase();
+  return pb.collection(COLLECTIONS.books).update<BookRecord>(id, { loaned_to: loanedTo });
+}
+
+export async function returnBook(id: string): Promise<BookRecord> {
+  const pb = getPocketBase();
+  return pb.collection(COLLECTIONS.books).update<BookRecord>(id, { loaned_to: "" });
+}
+
 export async function listAuthors(): Promise<AuthorRecord[]> {
   const pb = getPocketBase();
   return pb
