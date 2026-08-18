@@ -11,17 +11,22 @@ interface Arc {
   name: string;
   comments: BookStorylineRecord[];
   closedAtTome: number | null;
+  startTome: number | null;
 }
 
 /**
  * Arcs narratifs span a whole série, not one tome — this groups every
  * storyline comment across every book of the série by arc, so any tome's
  * page shows the arc's full history (see BookDetailPage, which fetches
- * `listSerieStorylineComments` rather than filtering to the current book).
+ * `listStorylineComments` rather than filtering to the current book).
+ * An arc that hasn't started yet as of the current tome is held back
+ * entirely (not just collapsed) to avoid spoiling it early; once it has
+ * started, later tomes keep showing it — closed or not.
  */
 export function StorylineArcsSection({
   comments,
   currentBookId,
+  currentBookTome,
   onAddComment,
   onCreateArc,
   onUpdateComment,
@@ -31,6 +36,7 @@ export function StorylineArcsSection({
 }: {
   comments: BookStorylineRecord[];
   currentBookId: string;
+  currentBookTome: number | null;
   onAddComment: (storylineId: string, comment: string) => Promise<void>;
   onCreateArc: (name: string, comment: string) => Promise<void>;
   onUpdateComment: (relationId: string, comment: string) => Promise<void>;
@@ -38,7 +44,7 @@ export function StorylineArcsSection({
   onCloseComment: (storylineId: string, relationId: string) => Promise<void>;
   onReopenComment: (relationId: string) => Promise<void>;
 }) {
-  const arcs = useMemo(() => buildArcs(comments), [comments]);
+  const arcs = useMemo(() => buildArcs(comments, currentBookTome), [comments, currentBookTome]);
 
   const [isCreatingArc, setIsCreatingArc] = useState(false);
   const [newArcName, setNewArcName] = useState("");
@@ -162,7 +168,7 @@ export function StorylineArcsSection({
   );
 }
 
-function buildArcs(comments: BookStorylineRecord[]): Arc[] {
+function buildArcs(comments: BookStorylineRecord[], currentBookTome: number | null): Arc[] {
   const groups = new Map<string, { name: string; comments: BookStorylineRecord[] }>();
 
   for (const comment of comments) {
@@ -180,14 +186,28 @@ function buildArcs(comments: BookStorylineRecord[]): Arc[] {
       );
       const closing = sorted.find((c) => c.closed);
       const firstCreated = Math.min(...group.comments.map((c) => new Date(c.created).getTime()));
+      const tomes = sorted
+        .map((c) => c.expand?.book?.tome)
+        .filter((tome): tome is number => tome != null);
       return {
         storylineId,
         name: group.name,
         comments: sorted,
         closedAtTome: closing?.expand?.book?.tome ?? null,
+        startTome: tomes.length > 0 ? Math.min(...tomes) : null,
         firstCreated,
       };
     })
+    .filter(
+      // An arc that hasn't started yet by the current tome shouldn't spoil
+      // it on earlier tomes — a closed arc from an earlier tome still shows
+      // (that's the whole point of tracking closure), only arcs that start
+      // *later* than the tome you're on get held back. Arcs with no
+      // determinable start tome (or when the current book itself has none)
+      // can't be excluded with confidence, so they stay visible.
+      (arc) =>
+        currentBookTome == null || arc.startTome == null || arc.startTome <= currentBookTome
+    )
     .sort((a, b) => a.firstCreated - b.firstCreated);
 }
 

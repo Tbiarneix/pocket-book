@@ -36,14 +36,19 @@ export interface RankingRecord extends BaseRecord {
   rating_max: number;
 }
 
+// Scoped to a série when the book belongs to one (reusable across every
+// tome), or directly to a single `book` as a fallback for standalone books
+// — otherwise every standalone book would share one unscoped pool.
 export interface CharacterRecord extends BaseRecord {
   name: string;
   serie: string;
+  book: string;
 }
 
 export interface StorylineRecord extends BaseRecord {
   name: string;
   serie: string;
+  book: string;
 }
 
 export interface BookRecord extends BaseRecord {

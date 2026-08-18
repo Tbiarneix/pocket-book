@@ -129,12 +129,13 @@ export async function listCharacters(): Promise<CharacterRecord[]> {
 
 export async function createCharacter(
   name: string,
-  serie: string
+  serie: string,
+  book: string
 ): Promise<CharacterRecord> {
   const pb = getPocketBase();
   return pb
     .collection(COLLECTIONS.characters)
-    .create<CharacterRecord>({ name, serie });
+    .create<CharacterRecord>({ name, serie, book });
 }
 
 export async function listStorylines(): Promise<StorylineRecord[]> {
@@ -146,12 +147,13 @@ export async function listStorylines(): Promise<StorylineRecord[]> {
 
 export async function createStoryline(
   name: string,
-  serie: string
+  serie: string,
+  book: string
 ): Promise<StorylineRecord> {
   const pb = getPocketBase();
   return pb
     .collection(COLLECTIONS.storylines)
-    .create<StorylineRecord>({ name, serie });
+    .create<StorylineRecord>({ name, serie, book });
 }
 
 export async function listBookCharacters(
@@ -201,20 +203,23 @@ export async function removeBookCharacter(id: string): Promise<void> {
  * Every storyline comment across every book of a série (not just one tome)
  * — arcs narratifs span the whole série, so the detail page groups these by
  * storyline to show each arc's full history regardless of which tome
- * you're currently viewing. Standalone books (no série) pass `""`, which
- * correctly matches their own unshared storylines' empty `serie` field.
+ * you're currently viewing. Standalone books (no série) fall back to their
+ * own `book` scope instead, so unrelated standalone books never share a
+ * pool of arcs the way they would if both just matched an empty `serie`.
  */
-export async function listSerieStorylineComments(
-  serieId: string
+export async function listStorylineComments(
+  serieId: string,
+  bookId: string
 ): Promise<BookStorylineRecord[]> {
   const pb = getPocketBase();
-  return pb
-    .collection(COLLECTIONS.booksStorylines)
-    .getFullList<BookStorylineRecord>({
-      filter: `storyline.serie = "${serieId}"`,
-      expand: "storyline,book",
-      sort: "created",
-    });
+  const filter = serieId
+    ? `storyline.serie = "${serieId}"`
+    : `storyline.book = "${bookId}"`;
+  return pb.collection(COLLECTIONS.booksStorylines).getFullList<BookStorylineRecord>({
+    filter,
+    expand: "storyline,book",
+    sort: "created",
+  });
 }
 
 export async function addBookStoryline(

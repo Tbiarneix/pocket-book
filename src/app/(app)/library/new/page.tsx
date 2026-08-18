@@ -17,7 +17,7 @@ export default function NewBookPage() {
   }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-5">
+    <div className="flex flex-col gap-5">
       <h1 className="font-hand text-[32px] text-foreground">Ajouter un livre</h1>
       <BookForm onSubmit={handleSubmit} submitLabel="Ajouter le livre" />
     </div>

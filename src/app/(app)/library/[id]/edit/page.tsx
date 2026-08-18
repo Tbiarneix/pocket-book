@@ -53,7 +53,7 @@ export default function EditBookPage({
   }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-5">
+    <div className="flex flex-col gap-5">
       <h1 className="font-hand text-[32px] text-foreground">
         Modifier « {book.title} »
       </h1>

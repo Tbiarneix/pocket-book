@@ -15,7 +15,7 @@ import {
   listBookCharacters,
   listCharacters,
   listRankings,
-  listSerieStorylineComments,
+  listStorylineComments,
   removeBookCharacter,
   removeBookStoryline,
   reopenBookStoryline,
@@ -42,7 +42,7 @@ async function fetchBookPageData(id: string) {
   const [rankings, bookCharacters, storylineComments, characters] = await Promise.all([
     listRankings(),
     listBookCharacters(id),
-    listSerieStorylineComments(book.serie),
+    listStorylineComments(book.serie, id),
     listCharacters(),
   ]);
 
@@ -131,14 +131,19 @@ export default function BookDetailPage({
 
   const author = book.expand?.author?.name;
   const serie = book.expand?.serie?.name;
+  const serieSubtitle = serie ? (book.tome ? `${serie} · Tome ${book.tome}` : serie) : null;
   const genre = book.expand?.genre?.name;
   const subgenres = book.expand?.subgenres ?? [];
   const status = book.expand?.status?.name;
 
   // Characters are scoped to a série (reusable across every tome of that
-  // série) so the picker doesn't mix in unrelated books' casts —
-  // standalone books (no série) get their own separate, unshared pool.
-  const seriesCharacters = allCharacters.filter((c) => c.serie === book.serie);
+  // série) so the picker doesn't mix in unrelated books' casts. Standalone
+  // books (no série) fall back to their own `book` scope instead of
+  // matching on an empty `serie`, which would otherwise lump every
+  // standalone book's characters into one shared pool.
+  const seriesCharacters = book.serie
+    ? allCharacters.filter((c) => c.serie === book.serie)
+    : allCharacters.filter((c) => c.book === id);
 
   return (
     <div className="flex flex-col gap-8">
@@ -164,6 +169,9 @@ export default function BookDetailPage({
               <h1 className="font-hand text-[32px] text-foreground sm:text-[38px]">
                 {book.title}
               </h1>
+              {serieSubtitle && (
+                <p className="mt-1 font-hand text-[18px] text-accent">{serieSubtitle}</p>
+              )}
               {author && <p className="mt-1 font-hand text-[17px] text-muted">{author}</p>}
             </div>
             <div className="flex gap-2">
@@ -189,12 +197,6 @@ export default function BookDetailPage({
           <div className="flex flex-wrap items-center gap-2">
             <RankingBadge rating={book.rating} rankings={rankings} variant="full" />
             {status && <StatusBadge name={status} />}
-            {serie && (
-              <span className="inline-flex min-h-[28px] items-center rounded-[9px] border-2 border-border-field bg-background px-2.5 font-hand text-[14px] text-muted">
-                Série : {serie}
-                {book.tome ? ` · Tome ${book.tome}` : ""}
-              </span>
-            )}
             {genre && (
               <span className="inline-flex min-h-[28px] items-center rounded-[9px] border-2 border-border-field bg-background px-2.5 font-hand text-[14px] text-muted">
                 {genre}
@@ -257,7 +259,9 @@ export default function BookDetailPage({
           await updateBookCharacter(relationId, comment);
           await refresh();
         }}
-        onCreateOption={async (name) => createCharacter(name, book.serie)}
+        onCreateOption={async (name) =>
+          createCharacter(name, book.serie, book.serie ? "" : id)
+        }
         addLabel="Ajouter un personnage"
         selectLabel="Personnage"
       />
@@ -265,12 +269,13 @@ export default function BookDetailPage({
       <StorylineArcsSection
         comments={storylineComments}
         currentBookId={id}
+        currentBookTome={book.tome}
         onAddComment={async (storylineId, comment) => {
           await addBookStoryline(id, storylineId, comment);
           await refresh();
         }}
         onCreateArc={async (name, comment) => {
-          const created = await createStoryline(name, book.serie);
+          const created = await createStoryline(name, book.serie, book.serie ? "" : id);
           await addBookStoryline(id, created.id, comment);
           await refresh();
         }}
