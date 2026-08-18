@@ -7,17 +7,18 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import {
   addBookCharacter,
   addBookStoryline,
+  closeBookStoryline,
   createCharacter,
   createStoryline,
   deleteBook,
   getBook,
   listBookCharacters,
-  listBookStorylines,
   listCharacters,
   listRankings,
-  listStorylines,
+  listSerieStorylineComments,
   removeBookCharacter,
   removeBookStoryline,
+  reopenBookStoryline,
   updateBookCharacter,
   updateBookStoryline,
 } from "@/lib/data";
@@ -27,27 +28,25 @@ import type {
   CharacterRecord,
   ExpandedBookRecord,
   RankingRecord,
-  StorylineRecord,
 } from "@/lib/types";
 import { RankingBadge } from "@/components/RankingBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookCover } from "@/components/BookCover";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { StorylineArcsSection } from "@/components/StorylineArcsSection";
 import { isActiveStatus } from "@/lib/statusStyle";
 import { SKETCH_RADIUS, SKETCH_UNDERLINE } from "@/lib/sketch";
 
 async function fetchBookPageData(id: string) {
-  const [book, rankings, bookCharacters, bookStorylines, characters, storylines] =
-    await Promise.all([
-      getBook(id),
-      listRankings(),
-      listBookCharacters(id),
-      listBookStorylines(id),
-      listCharacters(),
-      listStorylines(),
-    ]);
+  const book = await getBook(id);
+  const [rankings, bookCharacters, storylineComments, characters] = await Promise.all([
+    listRankings(),
+    listBookCharacters(id),
+    listSerieStorylineComments(book.serie),
+    listCharacters(),
+  ]);
 
-  return { book, rankings, bookCharacters, bookStorylines, characters, storylines };
+  return { book, rankings, bookCharacters, storylineComments, characters };
 }
 
 export default function BookDetailPage({
@@ -61,9 +60,8 @@ export default function BookDetailPage({
   const [book, setBook] = useState<ExpandedBookRecord | null>(null);
   const [rankings, setRankings] = useState<RankingRecord[]>([]);
   const [bookCharacters, setBookCharacters] = useState<BookCharacterRecord[]>([]);
-  const [bookStorylines, setBookStorylines] = useState<BookStorylineRecord[]>([]);
+  const [storylineComments, setStorylineComments] = useState<BookStorylineRecord[]>([]);
   const [allCharacters, setAllCharacters] = useState<CharacterRecord[]>([]);
-  const [allStorylines, setAllStorylines] = useState<StorylineRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -76,9 +74,8 @@ export default function BookDetailPage({
         setBook(data.book);
         setRankings(data.rankings);
         setBookCharacters(data.bookCharacters);
-        setBookStorylines(data.bookStorylines);
+        setStorylineComments(data.storylineComments);
         setAllCharacters(data.characters);
-        setAllStorylines(data.storylines);
       })
       .catch(() => {
         if (!cancelled) setError("Impossible de charger ce livre.");
@@ -97,9 +94,8 @@ export default function BookDetailPage({
       setBook(data.book);
       setRankings(data.rankings);
       setBookCharacters(data.bookCharacters);
-      setBookStorylines(data.bookStorylines);
+      setStorylineComments(data.storylineComments);
       setAllCharacters(data.characters);
-      setAllStorylines(data.storylines);
     } catch {
       setError("Impossible de rafraîchir ce livre.");
     }
@@ -139,11 +135,10 @@ export default function BookDetailPage({
   const subgenres = book.expand?.subgenres ?? [];
   const status = book.expand?.status?.name;
 
-  // Characters/storylines are scoped to a série (reusable across every tome
-  // of that série) so the picker doesn't mix in unrelated books' casts —
+  // Characters are scoped to a série (reusable across every tome of that
+  // série) so the picker doesn't mix in unrelated books' casts —
   // standalone books (no série) get their own separate, unshared pool.
   const seriesCharacters = allCharacters.filter((c) => c.serie === book.serie);
-  const seriesStorylines = allStorylines.filter((s) => s.serie === book.serie);
 
   return (
     <div className="flex flex-col gap-8">
@@ -267,30 +262,34 @@ export default function BookDetailPage({
         selectLabel="Personnage"
       />
 
-      <RelationSection
-        title="Arcs narratifs"
-        emptyLabel="Aucun arc narratif associé pour l'instant."
-        items={bookStorylines.map((bs) => ({
-          id: bs.id,
-          label: bs.expand?.storyline?.name ?? "Arc narratif",
-          comment: bs.comment,
-        }))}
-        options={seriesStorylines}
-        onAdd={async (refId, comment) => {
-          await addBookStoryline(id, refId, comment);
+      <StorylineArcsSection
+        comments={storylineComments}
+        currentBookId={id}
+        onAddComment={async (storylineId, comment) => {
+          await addBookStoryline(id, storylineId, comment);
           await refresh();
         }}
-        onRemove={async (relationId) => {
-          await removeBookStoryline(relationId);
+        onCreateArc={async (name, comment) => {
+          const created = await createStoryline(name, book.serie);
+          await addBookStoryline(id, created.id, comment);
           await refresh();
         }}
-        onUpdate={async (relationId, comment) => {
+        onUpdateComment={async (relationId, comment) => {
           await updateBookStoryline(relationId, comment);
           await refresh();
         }}
-        onCreateOption={async (name) => createStoryline(name, book.serie)}
-        addLabel="Ajouter un arc narratif"
-        selectLabel="Arc narratif"
+        onRemoveComment={async (relationId) => {
+          await removeBookStoryline(relationId);
+          await refresh();
+        }}
+        onCloseComment={async (storylineId, relationId) => {
+          await closeBookStoryline(storylineId, relationId);
+          await refresh();
+        }}
+        onReopenComment={async (relationId) => {
+          await reopenBookStoryline(relationId);
+          await refresh();
+        }}
       />
 
       {book.opinion && (

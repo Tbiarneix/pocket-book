@@ -197,16 +197,23 @@ export async function removeBookCharacter(id: string): Promise<void> {
   await pb.collection(COLLECTIONS.booksCharacters).delete(id);
 }
 
-export async function listBookStorylines(
-  bookId: string
+/**
+ * Every storyline comment across every book of a série (not just one tome)
+ * — arcs narratifs span the whole série, so the detail page groups these by
+ * storyline to show each arc's full history regardless of which tome
+ * you're currently viewing. Standalone books (no série) pass `""`, which
+ * correctly matches their own unshared storylines' empty `serie` field.
+ */
+export async function listSerieStorylineComments(
+  serieId: string
 ): Promise<BookStorylineRecord[]> {
   const pb = getPocketBase();
   return pb
     .collection(COLLECTIONS.booksStorylines)
     .getFullList<BookStorylineRecord>({
-      filter: `book = "${bookId}"`,
-      expand: "storyline",
-      sort: "-created",
+      filter: `storyline.serie = "${serieId}"`,
+      expand: "storyline,book",
+      sort: "created",
     });
 }
 
@@ -238,6 +245,34 @@ export async function updateBookStoryline(
 export async function removeBookStoryline(id: string): Promise<void> {
   const pb = getPocketBase();
   await pb.collection(COLLECTIONS.booksStorylines).delete(id);
+}
+
+/**
+ * Marks `bookStorylineId` as the comment that closes its arc, reopening
+ * any previously-closed comment on that same storyline first — only one
+ * comment per arc can be the closing one.
+ */
+export async function closeBookStoryline(
+  storylineId: string,
+  bookStorylineId: string
+): Promise<void> {
+  const pb = getPocketBase();
+  const previouslyClosed = await pb
+    .collection(COLLECTIONS.booksStorylines)
+    .getFullList<BookStorylineRecord>({
+      filter: `storyline = "${storylineId}" && closed = true`,
+    });
+  for (const entry of previouslyClosed) {
+    if (entry.id !== bookStorylineId) {
+      await pb.collection(COLLECTIONS.booksStorylines).update(entry.id, { closed: false });
+    }
+  }
+  await pb.collection(COLLECTIONS.booksStorylines).update(bookStorylineId, { closed: true });
+}
+
+export async function reopenBookStoryline(id: string): Promise<void> {
+  const pb = getPocketBase();
+  await pb.collection(COLLECTIONS.booksStorylines).update(id, { closed: false });
 }
 
 /** Fetches every reference collection needed to render filters and forms. */

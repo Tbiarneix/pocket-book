@@ -86,8 +86,10 @@ export interface BookStorylineRecord extends BaseRecord {
   book: string;
   storyline: string;
   comment: string;
+  closed: boolean;
   expand?: {
     storyline?: StorylineRecord;
+    book?: BookRecord;
   };
 }
 
