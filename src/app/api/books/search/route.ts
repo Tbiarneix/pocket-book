@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { repairMojibake } from "@/lib/googleBooks";
 
 // Server-only: an anonymous (keyless) Google Books request shares a global
 // per-day quota across every caller on the internet, which is often
@@ -50,10 +51,10 @@ export async function GET(request: NextRequest) {
       const thumbnail = info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail ?? "";
       return {
         id: item.id,
-        title: info.title ?? "",
-        authors: info.authors ?? [],
+        title: repairMojibake(info.title ?? ""),
+        authors: (info.authors ?? []).map(repairMojibake),
         publishedDate: info.publishedDate ?? "",
-        description: info.description ?? "",
+        description: repairMojibake(info.description ?? ""),
         categories: info.categories ?? [],
         thumbnail: thumbnail.replace(/^http:/, "https:"),
       };

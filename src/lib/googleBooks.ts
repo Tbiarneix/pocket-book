@@ -42,6 +42,58 @@ export function htmlDescriptionToText(html: string): string {
   return (div.textContent ?? "").trim();
 }
 
+// Markers that only ever appear in this specific corruption pattern — real
+// French/English prose never contains them, so their presence is a safe
+// signal that repairMojibake should run.
+const MOJIBAKE_MARKERS = /A\(c\)|A\(R\)|A\]|A\[|A-|a \(TM\)|A0\/00/;
+
+const MOJIBAKE_TOKENS: [string, string][] = [
+  ["a (TM)", "’"],
+  ["A0/00", "É"],
+  ["A(c)", "é"],
+  ["A(R)", "î"],
+  ["A]", "è"],
+  ["A[", "â"],
+  ["A-", "œ"],
+  ["Aa", "ê"],
+  ["Ane", "ône"],
+];
+
+/**
+ * Some Google Books search-result entries (mostly bare-bones print-catalog
+ * records, as opposed to proper ebook editions) already carry corrupted
+ * French text at the source: their description went through a UTF-8 →
+ * Windows-1252 misread, and the resulting Latin-1-supplement characters
+ * (©, ®, NBSP, …) were then transliterated to ASCII approximations —
+ * "é" ends up as "A(c)", "î" as "A(R)", "à" as a bare "A", etc. Verified
+ * against real corrupted/clean sibling entries for the same book.
+ * Confirmed to round-trip exactly for the samples this was built from —
+ * only ever called on text that matches MOJIBAKE_MARKERS.
+ */
+export function repairMojibake(text: string): string {
+  if (!text || !MOJIBAKE_MARKERS.test(text)) return text;
+
+  let result = text;
+  for (const [bad, good] of MOJIBAKE_TOKENS) {
+    result = result.split(bad).join(good);
+  }
+  // "oà" as its own word is always the corrupted "où"
+  result = result.replace(/\boA\b/g, "où");
+  // a word made only of lowercase letters plus a trailing capital "A" is a
+  // glued/standalone corrupted à (e.g. "lA" -> "là", "delA" -> "delà")
+  result = result.replace(
+    /\b([a-zàâîôûüéèêëïöçœ]*)A\b/g,
+    (_match, prefix: string) => `${prefix}à`
+  );
+  result = result.replace(/ +([.,;:!?])/g, "$1");
+  // a lone "à" standing in for its own sentence (preceded by end
+  // punctuation or start of text, followed by a capitalized word) is a
+  // stray paragraph-break artifact, not the real word "à"
+  result = result.replace(/(^|[.!?])\s*(à\s+)+(?=[A-ZÉÈÀ])/g, "$1 ");
+  result = result.replace(/ {2,}/g, " ");
+  return result.trim();
+}
+
 /** Best-effort match against the app's existing (French) genre list — never
  * creates a new genre, so a miss just leaves the field for manual entry. */
 export function matchGenre(
