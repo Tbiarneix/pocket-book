@@ -3,10 +3,10 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Copy } from "lucide-react";
+import { ArrowLeft, Copy, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { duplicateBook, getBook, getUser, listRankings } from "@/lib/data";
-import type { ExpandedBookRecord, RankingRecord, UserRecord } from "@/lib/types";
+import { duplicateBook, findDuplicateBook, getBook, getUser, listRankings } from "@/lib/data";
+import type { BookRecord, ExpandedBookRecord, RankingRecord, UserRecord } from "@/lib/types";
 import { RankingBadge } from "@/components/RankingBadge";
 import { BookCover } from "@/components/BookCover";
 import { MarkdownContent } from "@/components/MarkdownContent";
@@ -24,6 +24,7 @@ export default function CommunityBookPage({
   const [book, setBook] = useState<ExpandedBookRecord | null>(null);
   const [member, setMember] = useState<UserRecord | null>(null);
   const [rankings, setRankings] = useState<RankingRecord[]>([]);
+  const [duplicate, setDuplicate] = useState<BookRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDuplicating, setIsDuplicating] = useState(false);
 
@@ -43,6 +44,17 @@ export default function CommunityBookPage({
       cancelled = true;
     };
   }, [bookId, userId]);
+
+  useEffect(() => {
+    if (!book || !user) return;
+    let cancelled = false;
+    findDuplicateBook(user.id, book).then((existing) => {
+      if (!cancelled) setDuplicate(existing);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [book, user]);
 
   async function handleDuplicate() {
     if (!user) return;
@@ -113,6 +125,17 @@ export default function CommunityBookPage({
               {isDuplicating ? "Duplication…" : "Dupliquer dans ma bibliothèque"}
             </button>
           </div>
+
+          {duplicate && (
+            <p className="flex items-center gap-1.5 font-hand text-[14px] text-accent">
+              <TriangleAlert aria-hidden="true" width={14} height={14} strokeWidth={2} className="shrink-0" />
+              Tu as déjà{" "}
+              <Link href={`/library/${duplicate.id}`} className={SKETCH_UNDERLINE}>
+                ce livre
+              </Link>{" "}
+              dans ta bibliothèque.
+            </p>
+          )}
 
           <div className="flex flex-wrap items-center gap-2">
             <RankingBadge rating={book.rating} rankings={rankings} variant="full" />

@@ -341,6 +341,35 @@ export async function listCommunityUsers(currentUserId: string): Promise<UserRec
 }
 
 /**
+ * Looks for a book already in `userId`'s library that's probably the same
+ * as `source` — matched on série + tome, or author + title for standalone
+ * books, since those are structured fields (relations, numbers) rather
+ * than free text, so a typo in the title elsewhere doesn't defeat the
+ * check. Used to warn before duplicating, not to block it.
+ */
+export async function findDuplicateBook(
+  userId: string,
+  source: BookRecord
+): Promise<BookRecord | null> {
+  const pb = getPocketBase();
+  const filter = source.serie
+    ? pb.filter("user = {:userId} && serie = {:serie} && tome = {:tome}", {
+        userId,
+        serie: source.serie,
+        tome: source.tome,
+      })
+    : pb.filter("user = {:userId} && author = {:author} && title = {:title}", {
+        userId,
+        author: source.author,
+        title: source.title,
+      });
+  return pb
+    .collection(COLLECTIONS.books)
+    .getFirstListItem<BookRecord>(filter)
+    .catch(() => null);
+}
+
+/**
  * Copies a book into another account's library — catalog fields only
  * (title, cover, résumé, auteur, série, tome, genre) since rating, status,
  * finished date, loan, and avis are personal reading progress, not the
