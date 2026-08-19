@@ -12,6 +12,7 @@ export interface UserRecord extends BaseRecord {
   avatar: string;
   emailVisibility: boolean;
   verified: boolean;
+  can_invite: boolean;
 }
 
 export interface AuthorRecord extends BaseRecord {
@@ -99,6 +100,14 @@ export interface BookStorylineRecord extends BaseRecord {
   };
 }
 
+export interface InviteRecord extends BaseRecord {
+  token: string;
+  created_by: string;
+  used_by: string;
+  used_at: string;
+  expires_at: string;
+}
+
 export const COLLECTIONS = {
   users: "users",
   authors: "authors",
@@ -107,6 +116,7 @@ export const COLLECTIONS = {
   booksStorylines: "books_storylines",
   characters: "characters",
   genres: "genres",
+  invites: "invites",
   rankings: "rankings",
   series: "series",
   status: "status",

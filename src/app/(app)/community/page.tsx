@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { listBooks, listCommunityUsers } from "@/lib/data";
 import type { UserRecord } from "@/lib/types";
+import { InviteModal } from "@/components/InviteModal";
 import { SKETCH_OUTLINE, SKETCH_RADIUS } from "@/lib/sketch";
 
 interface CommunityMember {
@@ -17,6 +18,7 @@ export default function CommunityPage() {
   const { user } = useAuth();
   const [members, setMembers] = useState<CommunityMember[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -41,7 +43,19 @@ export default function CommunityPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-hand text-[34px] text-foreground">Communauté</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="font-hand text-[34px] text-foreground">Communauté</h1>
+        {user?.can_invite && (
+          <button
+            type="button"
+            onClick={() => setIsInviteModalOpen(true)}
+            className={`inline-flex min-h-11 items-center gap-1.5 border-2 border-accent bg-accent px-4 font-hand text-[16px] font-semibold text-accent-foreground rotate-[-0.3deg] hover:opacity-90 ${SKETCH_RADIUS}`}
+          >
+            <UserPlus aria-hidden="true" width={15} height={15} strokeWidth={2} />
+            Inviter
+          </button>
+        )}
+      </div>
 
       {error && (
         <p role="alert" className="rounded-[8px] bg-accent-soft px-3 py-2 text-sm text-accent">
@@ -80,6 +94,10 @@ export default function CommunityPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {isInviteModalOpen && user && (
+        <InviteModal userId={user.id} onClose={() => setIsInviteModalOpen(false)} />
       )}
     </div>
   );

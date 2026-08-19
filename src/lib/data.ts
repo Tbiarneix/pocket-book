@@ -8,12 +8,15 @@ import type {
   CharacterRecord,
   ExpandedBookRecord,
   GenreRecord,
+  InviteRecord,
   RankingRecord,
   SeriesRecord,
   StatusRecord,
   StorylineRecord,
   UserRecord,
 } from "./types";
+
+const INVITE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
 const BOOK_EXPAND = "author,serie,genre,subgenres,status";
 
@@ -395,4 +398,35 @@ export async function duplicateBook(sourceBookId: string, userId: string): Promi
   ]);
 
   return newBook;
+}
+
+/**
+ * The invite a user has already generated and hasn't used or let expire
+ * yet, if any — so "Inviter" reuses one link instead of piling up unused
+ * ones every time the button is clicked.
+ */
+export async function getPendingInvite(userId: string): Promise<InviteRecord | null> {
+  const pb = getPocketBase();
+  const invites = await pb.collection(COLLECTIONS.invites).getFullList<InviteRecord>({
+    filter: `created_by = "${userId}" && used_by = ""`,
+    sort: "-created",
+  });
+  const now = Date.now();
+  return invites.find((invite) => new Date(invite.expires_at).getTime() > now) ?? null;
+}
+
+export async function createInvite(userId: string): Promise<InviteRecord> {
+  const pb = getPocketBase();
+  const token = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + INVITE_LIFETIME_MS).toISOString();
+  return pb.collection(COLLECTIONS.invites).create<InviteRecord>({
+    token,
+    created_by: userId,
+    expires_at: expiresAt,
+  });
+}
+
+export async function revokeInvite(id: string): Promise<void> {
+  const pb = getPocketBase();
+  await pb.collection(COLLECTIONS.invites).delete(id);
 }
