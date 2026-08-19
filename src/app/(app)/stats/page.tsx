@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { listBooks, listRankings } from "@/lib/data";
 import { findRankingForRating, sortRankingsByRating } from "@/lib/ranking";
 import { monthlyReadingPaceForYear } from "@/lib/stats";
@@ -10,14 +11,16 @@ import { StatTile } from "@/components/StatTile";
 import { ReadingPaceChart } from "@/components/ReadingPaceChart";
 
 export default function StatsPage() {
+  const { user } = useAuth();
   const [books, setBooks] = useState<ExpandedBookRecord[] | null>(null);
   const [rankings, setRankings] = useState<RankingRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [paceYear, setPaceYear] = useState(() => new Date().getFullYear());
 
   useEffect(() => {
+    if (!user) return;
     let cancelled = false;
-    Promise.all([listBooks(), listRankings()])
+    Promise.all([listBooks(user.id), listRankings()])
       .then(([bookList, rankingList]) => {
         if (cancelled) return;
         setBooks(bookList);
@@ -29,7 +32,7 @@ export default function StatsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user]);
 
   const stats = useMemo(() => {
     if (!books) return null;

@@ -9,6 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 const NAV_LINKS = [
   { href: "/library", label: "Bibliothèque" },
   { href: "/library/new", label: "Ajouter" },
+  { href: "/community", label: "Communauté" },
   { href: "/stats", label: "Statistiques" },
 ];
 

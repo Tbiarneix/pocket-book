@@ -46,7 +46,7 @@ async function fetchBookPageData(id: string) {
   const [rankings, bookCharacters, storylineComments, characters] = await Promise.all([
     listRankings(),
     listBookCharacters(id),
-    listStorylineComments(book.serie, id),
+    listStorylineComments(book.serie, id, book.user),
     listCharacters(),
   ]);
 
@@ -330,7 +330,7 @@ export default function BookDetailPage({
           await refresh();
         }}
         onCloseComment={async (storylineId, relationId) => {
-          await closeBookStoryline(storylineId, relationId);
+          await closeBookStoryline(storylineId, relationId, book.user);
           await refresh();
         }}
         onReopenComment={async (relationId) => {

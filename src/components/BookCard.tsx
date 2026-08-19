@@ -9,9 +9,11 @@ import { SKETCH_OUTLINE, SKETCH_RADIUS } from "@/lib/sketch";
 export function BookCard({
   book,
   rankings,
+  href,
 }: {
   book: ExpandedBookRecord;
   rankings: RankingRecord[];
+  href?: string;
 }) {
   const author = book.expand?.author?.name;
   const status = book.expand?.status?.name;
@@ -29,7 +31,7 @@ export function BookCard({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <h3 className="font-hand text-xl leading-snug text-foreground">
-          <Link href={`/library/${book.id}`} className="after:absolute after:inset-0">
+          <Link href={href ?? `/library/${book.id}`} className="after:absolute after:inset-0">
             {book.title}
           </Link>
         </h3>

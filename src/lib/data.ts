@@ -12,13 +12,20 @@ import type {
   SeriesRecord,
   StatusRecord,
   StorylineRecord,
+  UserRecord,
 } from "./types";
 
 const BOOK_EXPAND = "author,serie,genre,subgenres,status";
 
-export async function listBooks(): Promise<ExpandedBookRecord[]> {
+/**
+ * Books are readable by every signed-in account (for the Communauté
+ * feature), so an explicit `user` filter is what keeps "my library" scoped
+ * to just one person — the API rule alone no longer does that.
+ */
+export async function listBooks(userId: string): Promise<ExpandedBookRecord[]> {
   const pb = getPocketBase();
   return pb.collection(COLLECTIONS.books).getFullList<ExpandedBookRecord>({
+    filter: `user = "${userId}"`,
     expand: BOOK_EXPAND,
     sort: "-created",
   });
@@ -216,14 +223,20 @@ export async function removeBookCharacter(id: string): Promise<void> {
  * you're currently viewing. Standalone books (no série) fall back to their
  * own `book` scope instead, so unrelated standalone books never share a
  * pool of arcs the way they would if both just matched an empty `serie`.
+ *
+ * `books_storylines` is readable by every account (for Communauté), and a
+ * série itself is shared across accounts, so without `book.user = ownerId`
+ * this would also pull in every other account's comments on that série's
+ * other tomes.
  */
 export async function listStorylineComments(
   serieId: string,
-  bookId: string
+  bookId: string,
+  ownerId: string
 ): Promise<BookStorylineRecord[]> {
   const pb = getPocketBase();
   const filter = serieId
-    ? `storyline.serie = "${serieId}"`
+    ? `storyline.serie = "${serieId}" && book.user = "${ownerId}"`
     : `storyline.book = "${bookId}"`;
   return pb.collection(COLLECTIONS.booksStorylines).getFullList<BookStorylineRecord>({
     filter,
@@ -265,17 +278,21 @@ export async function removeBookStoryline(id: string): Promise<void> {
 /**
  * Marks `bookStorylineId` as the comment that closes its arc, reopening
  * any previously-closed comment on that same storyline first — only one
- * comment per arc can be the closing one.
+ * comment per arc can be the closing one. Scoped to `bookUserId` for the
+ * same reason as `listStorylineComments`: a storyline can now carry
+ * comments from other accounts sharing the same série, and PocketBase's
+ * update rule would reject touching theirs anyway.
  */
 export async function closeBookStoryline(
   storylineId: string,
-  bookStorylineId: string
+  bookStorylineId: string,
+  bookUserId: string
 ): Promise<void> {
   const pb = getPocketBase();
   const previouslyClosed = await pb
     .collection(COLLECTIONS.booksStorylines)
     .getFullList<BookStorylineRecord>({
-      filter: `storyline = "${storylineId}" && closed = true`,
+      filter: `storyline = "${storylineId}" && closed = true && book.user = "${bookUserId}"`,
     });
   for (const entry of previouslyClosed) {
     if (entry.id !== bookStorylineId) {
@@ -304,4 +321,78 @@ export async function listReferenceData() {
     ]);
 
   return { authors, series, genres, statuses, rankings, characters, storylines };
+}
+
+export async function getUser(id: string): Promise<UserRecord> {
+  const pb = getPocketBase();
+  return pb.collection(COLLECTIONS.users).getOne<UserRecord>(id);
+}
+
+/** Every other account, for the Communauté user list. */
+export async function listCommunityUsers(currentUserId: string): Promise<UserRecord[]> {
+  const pb = getPocketBase();
+  const users = await pb.collection(COLLECTIONS.users).getFullList<UserRecord>({
+    sort: "name",
+  });
+  return users.filter((u) => u.id !== currentUserId);
+}
+
+/**
+ * Copies a book into another account's library — catalog fields only
+ * (title, cover, résumé, auteur, série, tome, genre) since rating, status,
+ * finished date, loan, and avis are personal reading progress, not the
+ * book's own data. Personnages/arcs comments attached to the source book
+ * are copied too (same text, same open/closed state) but still point at
+ * the série's existing personnage/arc entries rather than cloning those —
+ * per-book comments are already isolated by owner, so nothing about the
+ * original account's data is at risk, and this avoids seeding duplicate
+ * "Kaladin"-style entries into the série's shared picker.
+ */
+export async function duplicateBook(sourceBookId: string, userId: string): Promise<BookRecord> {
+  const pb = getPocketBase();
+  const source = await pb.collection(COLLECTIONS.books).getOne<BookRecord>(sourceBookId);
+
+  const newBook = await createBook(userId, {
+    title: source.title,
+    cover_url: source.cover_url,
+    summary: source.summary,
+    opinion: "",
+    author: source.author,
+    serie: source.serie,
+    tome: source.tome,
+    genre: source.genre,
+    subgenres: source.subgenres,
+    rating: null,
+    status: "",
+    finished: "",
+  });
+
+  const [sourceCharacters, sourceStorylines] = await Promise.all([
+    pb.collection(COLLECTIONS.booksCharacters).getFullList<BookCharacterRecord>({
+      filter: `book = "${sourceBookId}"`,
+    }),
+    pb.collection(COLLECTIONS.booksStorylines).getFullList<BookStorylineRecord>({
+      filter: `book = "${sourceBookId}"`,
+    }),
+  ]);
+
+  await Promise.all([
+    ...sourceCharacters.map((bc) =>
+      pb.collection(COLLECTIONS.booksCharacters).create({
+        book: newBook.id,
+        character: bc.character,
+        comment: bc.comment,
+      })
+    ),
+    ...sourceStorylines.map((bs) =>
+      pb.collection(COLLECTIONS.booksStorylines).create({
+        book: newBook.id,
+        storyline: bs.storyline,
+        comment: bs.comment,
+        closed: bs.closed,
+      })
+    ),
+  ]);
+
+  return newBook;
 }

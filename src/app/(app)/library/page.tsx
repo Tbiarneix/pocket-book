@@ -3,7 +3,9 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { LayoutGrid, List, Plus, Search } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { listBooks, listReferenceData } from "@/lib/data";
+import { sortBooksForDisplay } from "@/lib/bookSort";
 import type { ExpandedBookRecord, RankingRecord } from "@/lib/types";
 import { BookCard } from "@/components/BookCard";
 import { SKETCH_RADIUS } from "@/lib/sketch";
@@ -19,6 +21,7 @@ const fieldClasses =
   "min-h-10 rounded-[8px] border-2 border-border-field bg-background px-3 font-hand text-base text-foreground";
 
 export default function LibraryPage() {
+  const { user } = useAuth();
   const [books, setBooks] = useState<ExpandedBookRecord[] | null>(null);
   const [reference, setReference] = useState<ReferenceData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,12 +38,13 @@ export default function LibraryPage() {
   const seriesId = useId();
 
   useEffect(() => {
+    if (!user) return;
     let cancelled = false;
 
     async function load() {
       try {
         const [bookList, refData] = await Promise.all([
-          listBooks(),
+          listBooks(user!.id),
           listReferenceData(),
         ]);
         if (cancelled) return;
@@ -57,33 +61,23 @@ export default function LibraryPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user]);
 
   const filteredBooks = useMemo(() => {
     if (!books) return [];
     const query = search.trim().toLowerCase();
 
-    return books
-      .filter((book) => {
-        if (statusFilter && book.status !== statusFilter) return false;
-        if (genreFilter && book.genre !== genreFilter) return false;
-        if (seriesFilter && book.serie !== seriesFilter) return false;
-        if (query) {
-          const haystack = `${book.title} ${book.expand?.author?.name ?? ""}`.toLowerCase();
-          if (!haystack.includes(query)) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        // Group by série (alphabetically), tomes within a série in order;
-        // standalone books are grouped under their own title instead.
-        const groupA = a.expand?.serie?.name ?? a.title;
-        const groupB = b.expand?.serie?.name ?? b.title;
-        const groupCompare = groupA.localeCompare(groupB, "fr", { sensitivity: "base" });
-        if (groupCompare !== 0) return groupCompare;
-        if (a.tome !== b.tome) return (a.tome ?? 0) - (b.tome ?? 0);
-        return a.title.localeCompare(b.title, "fr", { sensitivity: "base" });
-      });
+    const filtered = books.filter((book) => {
+      if (statusFilter && book.status !== statusFilter) return false;
+      if (genreFilter && book.genre !== genreFilter) return false;
+      if (seriesFilter && book.serie !== seriesFilter) return false;
+      if (query) {
+        const haystack = `${book.title} ${book.expand?.author?.name ?? ""}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+    return sortBooksForDisplay(filtered);
   }, [books, search, statusFilter, genreFilter, seriesFilter]);
 
   const hasActiveFilters =

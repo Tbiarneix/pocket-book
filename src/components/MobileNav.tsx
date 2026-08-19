@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, Download, Library, Menu, Plus, Share, SquarePlus, X } from "lucide-react";
+import { BarChart3, Download, Library, Menu, Plus, Share, SquarePlus, Users, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { SKETCH_RADIUS } from "@/lib/sketch";
@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 const TABS = [
   { href: "/library", label: "Bibliothèque", icon: Library },
   { href: "/library/new", label: "Ajouter", icon: Plus },
+  { href: "/community", label: "Communauté", icon: Users },
   { href: "/stats", label: "Statistiques", icon: BarChart3 },
 ];
 
